@@ -399,47 +399,19 @@
 
   const sanitizeUsername = (u) => String(u || '').trim().toLowerCase();
   const isAdmin = () => !!currentUser && (ADMIN_USERNAMES.includes(sanitizeUsername(currentUser.username)) || currentUser.role === 'admin');
-  const getAttendanceCacheKey = (username) => `rocky_attendance_cache_${sanitizeUsername(username)}`;
-  function saveAttendanceCache(username, payload) {
-    if (!username) return;
-    localStorage.setItem(getAttendanceCacheKey(username), JSON.stringify({
-      dateKey: payload?.dateKey || toDateKey(nowDate()),
-      createdAtMs: Number(payload?.createdAtMs || Date.now()),
-      cachedAt: Date.now()
-    }));
-  }
-  function readAttendanceCache(username) {
-    if (!username) return null;
+  // Attendance cache dimatikan supaya jam absen selalu mengikuti data terbaru dari Supabase.
+  // Ini penting kalau admin edit jam absen langsung dari Supabase Table Editor.
+  function clearLegacyAttendanceCache() {
     try {
-      const raw = localStorage.getItem(getAttendanceCacheKey(username));
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (!parsed || parsed.dateKey !== toDateKey(nowDate())) return null;
-      return parsed;
-    } catch (e) { return null; }
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('rocky_attendance_cache_')) localStorage.removeItem(k);
+      });
+    } catch (e) {}
   }
-  function clearAttendanceCache(username) {
-    if (!username) return;
-    localStorage.removeItem(getAttendanceCacheKey(username));
-  }
-  function preloadAttendanceCache() {
-    if (!currentUser || isAdmin()) return false;
-    const cached = readAttendanceCache(currentUser.username);
-    if (!cached) return false;
-    const exists = cachedAttendance.some(a => a.__cached && a.dateKey === cached.dateKey && a.user === currentUser.username);
-    if (!exists) {
-      cachedAttendance = [{
-        id: `cached_${currentUser.username}_${cached.dateKey}`,
-        user: sanitizeUsername(currentUser.username),
-        name: currentUser.name,
-        dateKey: cached.dateKey,
-        createdAtMs: cached.createdAtMs || Date.now(),
-        __cached: true
-      }, ...cachedAttendance.filter(a => !a.__cached)];
-    }
-    attendanceReady = false;
-    return true;
-  }
+  function saveAttendanceCache() { clearLegacyAttendanceCache(); }
+  function readAttendanceCache() { return null; }
+  function clearAttendanceCache() { clearLegacyAttendanceCache(); }
+  function preloadAttendanceCache() { clearLegacyAttendanceCache(); return false; }
   function stripCachedAttendance() {
     cachedAttendance = cachedAttendance.filter(a => !a.__cached);
   }
@@ -711,15 +683,19 @@
   function getRecordTimeMs(item) {
     if (!item) return 0;
     if (item.createdAt?.toDate) return item.createdAt.toDate().getTime();
-    if (typeof item.createdAtMs === 'number' && Number.isFinite(item.createdAtMs)) return item.createdAtMs;
+    if (typeof item.createdAt === 'string') {
+      const raw = item.createdAt.trim();
+      const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T');
+      const parsed = new Date(normalized);
+      if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
+      const parsedWib = new Date(normalized + '+07:00');
+      if (!Number.isNaN(parsedWib.getTime())) return parsedWib.getTime();
+    }
     if (typeof item.time === 'string') {
       const parsed = new Date(item.time.replace(' ', 'T') + '+07:00');
       if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
     }
-    if (typeof item.createdAt === 'string') {
-      const parsed = new Date(item.createdAt.replace(' ', 'T') + '+07:00');
-      if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
-    }
+    if (typeof item.createdAtMs === 'number' && Number.isFinite(item.createdAtMs)) return item.createdAtMs;
     return 0;
   }
 
@@ -866,16 +842,6 @@
       cachedAttendance = sortByCreatedDesc(
         snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => !isRecordDeleted(a))
       );
-      if (!isAdmin()) {
-        const today = toDateKey(nowDate());
-        const todayRec = cachedAttendance.find(a => extractDateKey(a) === today && sanitizeUsername(a.user) === currentUser.username);
-        if (todayRec) {
-          const createdAtMs = getRecordTimeMs(todayRec) || Date.now();
-          saveAttendanceCache(currentUser.username, { dateKey: today, createdAtMs });
-        } else {
-          clearAttendanceCache(currentUser.username);
-        }
-      }
       attendanceReady = true;
       refreshCurrentPage();
     }, (err) => { attendanceReady = true; console.error(err); refreshCurrentPage(); });
@@ -952,17 +918,6 @@
     try {
       const nowMs = Date.now();
       const todayKey = toDateKey(nowDate());
-      saveAttendanceCache(currentUser.username, { dateKey: todayKey, createdAtMs: nowMs });
-      cachedAttendance = [{
-        id: `cached_${currentUser.username}_${todayKey}`,
-        user: sanitizeUsername(currentUser.username),
-        name: currentUser.name,
-        dateKey: todayKey,
-        createdAtMs: nowMs,
-        __cached: true
-      }, ...cachedAttendance.filter(a => !a.__cached)];
-      attendanceReady = true;
-      refreshCurrentPage();
       await addDoc(collection(db, 'attendance'), {
         user: sanitizeUsername(currentUser.username),
         name: currentUser.name,
@@ -971,6 +926,7 @@
         createdAtMs: nowMs,
         loc: currentPos
       });
+      await refreshAttendanceNow();
       showToast('✓ Absen berhasil');
     } catch (e) {
       showToast('Gagal absen', true);
@@ -2332,6 +2288,25 @@
   window.normalizeLegacyData = normalizeLegacyData;
   window.router = router;
   window.updateLocation = updateLocation;
+  window.refreshAttendanceNow = refreshAttendanceNow;
+
+  async function refreshAttendanceNow() {
+    if (!currentUser) return;
+    try {
+      const qy = isAdmin()
+        ? query(collection(db, 'attendance'), limit(ATT_SYNC_LIMIT_ADMIN))
+        : query(collection(db, 'attendance'), where('user', '==', sanitizeUsername(currentUser.username)), limit(ATT_SYNC_LIMIT_STAFF));
+      const snap = await getDocs(qy);
+      cachedAttendance = sortByCreatedDesc(
+        snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => !isRecordDeleted(a))
+      );
+      attendanceReady = true;
+      refreshCurrentPage();
+    } catch (e) {
+      attendanceReady = true;
+      console.error('refreshAttendanceNow gagal:', e);
+    }
+  }
 
   async function refreshTransactionsNow() {
     if (!currentUser) return;
@@ -2357,8 +2332,8 @@
     const now = Date.now();
     if (now - lastForegroundRefreshAt < 1500) return;
     lastForegroundRefreshAt = now;
-    preloadAttendanceCache();
     refreshCurrentPage();
+    await refreshAttendanceNow();
     await refreshTransactionsNow();
   }
 
