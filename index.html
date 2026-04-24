@@ -1,1 +1,2378 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Rocky Hijab Supabase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root { --transition-theme: background .3s ease, color .3s ease, border-color .3s ease; }
+    [data-theme="dark"]{
+      --bg:#0a0d14; --bg2:#0f1420; --bg3:#141a2a; --surface:rgba(255,255,255,.04); --surface-hover:rgba(255,255,255,.07);
+      --border:rgba(255,255,255,.08); --border-focus:rgba(99,155,255,.5); --text:#eef2ff; --text-soft:#7a85a0; --text-ghost:#3a4258;
+      --accent:#5b8fff; --accent-dim:rgba(91,143,255,.15); --accent-glow:rgba(91,143,255,.25); --green:#52d89e; --green-dim:rgba(82,216,158,.12);
+      --red:#ff6b6b; --red-dim:rgba(255,107,107,.12); --amber:#ffc46b; --amber-dim:rgba(255,196,107,.12); --nav-bg:rgba(10,13,20,.92); --shadow:0 8px 32px rgba(0,0,0,.5);
+    }
+    [data-theme="light"]{
+      --bg:#f0f2f8; --bg2:#ffffff; --bg3:#f7f8fc; --surface:rgba(0,0,0,.03); --surface-hover:rgba(0,0,0,.055);
+      --border:rgba(0,0,0,.07); --border-focus:rgba(64,120,240,.4); --text:#0f1523; --text-soft:#5c6478; --text-ghost:#aab0c0;
+      --accent:#3b6df0; --accent-dim:rgba(59,109,240,.1); --accent-glow:rgba(59,109,240,.2); --green:#18a96b; --green-dim:rgba(24,169,107,.1);
+      --red:#e84545; --red-dim:rgba(232,69,69,.1); --amber:#e8960a; --amber-dim:rgba(232,150,10,.1); --nav-bg:rgba(255,255,255,.92); --shadow:0 8px 32px rgba(0,0,0,.1);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:var(--transition-theme);-webkit-font-smoothing:antialiased}
+    #app{max-width:430px;min-height:100vh;margin:0 auto;position:relative;background:var(--bg);overflow-x:hidden}
+    [data-theme="dark"] #app::before{content:'';position:fixed;top:-120px;left:-80px;width:320px;height:320px;background:radial-gradient(circle, rgba(91,143,255,.09) 0%, transparent 70%);pointer-events:none;z-index:0}
+    #page-content{position:relative;z-index:1;padding-bottom:96px}
+    .page-pad{padding:0 18px}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;transition:background .15s,var(--transition-theme)}
+    .page-title{font-size:24px;font-weight:800;letter-spacing:-.025em}
+    .page-subtitle{font-size:12.5px;color:var(--text-soft);margin-top:2px}
+    .label-xs{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-ghost);margin-bottom:10px}
+    .g-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;min-height:44px;line-height:1.45;font-size:14px;color:var(--text);outline:none;transition:border-color .18s,background .18s,var(--transition-theme)}
+    .g-input:focus{border-color:var(--border-focus);background:var(--accent-dim)}
+    .g-input::placeholder{color:var(--text-ghost)}
+    .btn{border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .14s ease;display:inline-flex;align-items:center;justify-content:center;gap:7px;letter-spacing:.01em}
+    .btn:active{transform:scale(.97);opacity:.9}
+    .btn:disabled{opacity:.45;pointer-events:none}
+    .btn-primary{background:var(--accent);color:white;border-radius:12px;box-shadow:0 4px 18px var(--accent-glow)}
+    .btn-glass{background:var(--surface);border:1px solid var(--border)!important;border-radius:12px;color:var(--text-soft)}
+    .btn-danger{background:var(--red-dim);border:1px solid rgba(255,107,107,.2)!important;color:var(--red);border-radius:10px}
+    .btn-success{background:linear-gradient(135deg, #16a34a, #15803d);color:white;border-radius:12px}
+    .theme-toggle{width:38px;height:38px;background:var(--surface);border:1px solid var(--border);border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text-soft);flex-shrink:0}
+    .header-actions{display:flex;gap:8px;align-items:center}
+    .stat-hero{background:linear-gradient(140deg, var(--bg3) 0%, var(--bg2) 100%);border:1px solid var(--border);border-radius:18px;padding:22px 20px;position:relative;overflow:hidden}
+    [data-theme="dark"] .stat-hero{background:linear-gradient(140deg,#131d36 0%, #0d1526 100%);border-color:rgba(91,143,255,.15)}
+    .stat-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:130px;height:130px;background:radial-gradient(circle, var(--accent-glow) 0%, transparent 65%);pointer-events:none}
+    .stat-label{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+    .stat-value{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;letter-spacing:-.03em;position:relative;z-index:1}
+    .stat-sub{font-size:11.5px;color:var(--text-soft);margin-top:5px;position:relative;z-index:1}
+    .stat-mini{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 14px;text-align:center}
+    .stat-mini-num{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;line-height:1.1}
+    .stat-mini-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-ghost);margin-bottom:5px}
+    .bonus-card{border:1px solid rgba(255,196,107,.18);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden}
+    [data-theme="dark"] .bonus-card{background:#1a1800}[data-theme="light"] .bonus-card{background:#fffaf0}
+    .bonus-card::before{content:'';position:absolute;top:-20px;right:-20px;width:90px;height:90px;background:radial-gradient(circle, rgba(255,196,107,.18) 0%, transparent 70%)}
+    .modal-wrap{position:fixed;inset:0;background:rgba(5,8,16,.75);backdrop-filter:blur(14px);z-index:150;display:none;align-items:flex-end;justify-content:center}
+    .modal-wrap.show{display:flex}
+    .modal-sheet{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:20px 20px 40px;box-shadow:var(--shadow)}
+    .modal-pill{width:36px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+    .modal-ico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 14px}
+    .amount-display{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;color:var(--accent);text-align:right;width:100%;background:none;border:none;outline:none}
+    #bottom-nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:402px;background:var(--nav-bg);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:22px;display:flex;justify-content:space-around;align-items:center;height:62px;z-index:100;padding:0 6px;box-shadow:var(--shadow)}
+    .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 14px;border-radius:14px;cursor:pointer;background:none;border:none;color:var(--text-ghost);min-width:52px}
+    .nav-item i{font-size:17px}.nav-item span{font-size:8.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .nav-item.active{background:var(--accent-dim);color:var(--accent)}
+    .fab-add{position:fixed;right:22px;bottom:86px;width:58px;height:58px;border-radius:18px;border:none;background:var(--accent);color:white;display:none;align-items:center;justify-content:center;box-shadow:0 10px 28px var(--accent-glow);z-index:110;cursor:pointer;font-size:22px}
+    #loading{position:fixed;inset:0;background:rgba(10,13,20,.7);backdrop-filter:blur(16px);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+    .loader-ring{width:40px;height:40px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-8px) scale(.95);z-index:300;padding:10px 18px;border-radius:100px;font-size:12.5px;font-weight:600;opacity:0;transition:all .22s cubic-bezier(.34,1.5,.64,1);white-space:nowrap;max-width:calc(100% - 40px);text-align:center;pointer-events:none}
+    #toast.show{transform:translateX(-50%) translateY(0) scale(1);opacity:1}
+    .loc-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:100px;font-size:11.5px;font-weight:600}
+    .loc-in{background:var(--green-dim);color:var(--green);border:1px solid rgba(82,216,158,.2)}
+    .loc-out{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,107,107,.2)}
+    .loc-loading{background:var(--surface);color:var(--text-ghost);border:1px solid var(--border)}
+    .tab-group{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:3px;display:flex;gap:2px}
+    .tab-btn{flex:1;padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;color:var(--text-ghost);background:none;border:none;cursor:pointer}
+    .tab-btn.active{background:var(--accent);color:white}
+    .trx-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:13px}
+    .trx-icon{width:38px;height:38px;background:var(--accent-dim);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:var(--accent)}
+    .trx-amount{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600}
+    .trx-note{font-size:11.5px;color:var(--text-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px}
+    .trx-time{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-ghost);margin-top:3px}
+    .setting-row{display:flex;align-items:center;gap:13px;padding:13px 15px;background:var(--bg2);border:1px solid var(--border);border-radius:13px;cursor:pointer;width:100%;font-family:'Inter',sans-serif}
+    .setting-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .setting-label{font-size:13px;font-weight:500;color:var(--text);flex:1;text-align:left}
+    .setting-arrow{color:var(--text-ghost);font-size:10px}
+    .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+    .badge-blue{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(91,143,255,.2)}
+    .status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;border:1px solid}
+    .status-ok{background:var(--green-dim);color:var(--green);border-color:rgba(82,216,158,.2)}
+    .status-warn{background:var(--red-dim);color:var(--red);border-color:rgba(255,107,107,.2)}
+    .login-brand{width:78px;height:78px;border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;position:relative}
+    [data-theme="dark"] .login-brand{background:linear-gradient(135deg,#1a2a50 0%,#0d1830 100%);border:1px solid rgba(212,175,55,.25)}
+    [data-theme="light"] .login-brand{background:linear-gradient(135deg,#dde8ff 0%,#c5d8ff 100%);border:1px solid rgba(59,109,240,.2)}
+    .sync-btn{padding:7px 12px;background:var(--accent-dim);border:1px solid rgba(91,143,255,.2);border-radius:10px;color:var(--accent);font-size:11.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+    .user-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:var(--surface);border:1px solid var(--border);color:var(--text-soft)}
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+    .page-in{animation:pageIn .22s ease both}.s1{animation-delay:.04s}.s2{animation-delay:.08s}.s3{animation-delay:.12s}.s4{animation-delay:.16s}
+    @keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="loading">
+    <div class="loader-ring"></div>
+    <p style="font-size:12px;font-weight:700;color:var(--text-soft);letter-spacing:.07em">MEMPROSES</p>
+  </div>
+  <div id="toast">Toast</div>
 
+  <div id="transaction-modal" class="modal-wrap">
+    <div class="modal-sheet">
+      <div class="modal-pill"></div>
+      <div class="modal-ico" style="background:var(--accent-dim);border:1px solid rgba(91,143,255,0.2)">
+        <i class="fas fa-plus" style="color:var(--accent)"></i>
+      </div>
+      <h3 style="font-size:16px;font-weight:700;text-align:center;margin-bottom:4px">Tambah Transaksi</h3>
+      <p style="font-size:12px;color:var(--text-soft);text-align:center;margin-bottom:16px">Input transaksi baru</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:14px 15px">
+          <p class="label-xs">Keterangan / Item</p>
+          <input id="modal-pos-note" type="text" placeholder="Pashmina, Hijab, dll..." class="g-input" style="background:none;border:none;padding:4px 0 2px;font-size:15px;line-height:1.45;min-height:30px;display:block">
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:14px 15px">
+          <p class="label-xs">Nominal</p>
+          <input id="modal-pos-amount" type="text" inputmode="numeric" placeholder="0" class="amount-display" data-numeric="0">
+        </div>
+      </div>
+      <div id="modal-pos-status" style="margin:14px 0 0"></div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button onclick="closeTransactionModal()" class="btn btn-glass" style="flex:1;padding:12px;font-size:13px">Batal</button>
+        <button onclick="handleTransactionFromModal()" class="btn btn-primary" style="flex:1;padding:12px;font-size:13px">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-content"></div>
+
+  <nav id="bottom-nav" style="display:none">
+    <button onclick="router.navigate('home')" id="nav-home" class="nav-item"><i class="fas fa-house"></i><span id="nav-home-label">Beranda</span></button>
+    <button onclick="router.navigate('history')" id="nav-history" class="nav-item"><i class="fas fa-receipt"></i><span id="nav-history-label">Riwayat</span></button>
+    <button onclick="router.navigate('report')" id="nav-report" class="nav-item"><i class="fas fa-chart-line"></i><span id="nav-report-label">Laporan</span></button>
+    <button onclick="router.navigate('settings')" id="nav-settings" class="nav-item"><i class="fas fa-gear"></i><span id="nav-settings-label">Setelan</span></button>
+  </nav>
+
+  <button id="fab-pos" class="fab-add" onclick="openTransactionModal()" aria-label="Tambah transaksi">
+    <i class="fas fa-plus"></i>
+  </button>
+</div>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+  // === ISI DARI SUPABASE DASHBOARD > Project Settings > API ===
+  const supabaseConfig = {
+    url: "https://xdgqtdsyeirjwauojbfm.supabase.co",
+    anonKey: "sb_publishable_wWF0ES1DCl_OyenfNYwCSQ_awULnllr",
+    projectId: "xdgqtdsyeirjwauojbfm"
+  };
+
+  const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey, {
+    realtime: { params: { eventsPerSecond: 10 } }
+  });
+  const SECURE_SESSION_TOKEN_KEY = 'rocky_supabase_secure_token_v1';
+  let appSessionToken = localStorage.getItem(SECURE_SESSION_TOKEN_KEY) || '';
+
+  async function secureRpc(fn, args = {}) {
+    const { data, error } = await supabase.rpc(fn, args);
+    if (error) {
+      console.error('RPC error:', fn, error);
+      throw new Error(error.message || 'Supabase RPC gagal');
+    }
+    return data;
+  }
+
+  // Adapter kecil supaya logika lama Firestore tetap jalan di Supabase.
+  // Database Supabase pakai snake_case, aplikasi lama tetap pakai camelCase.
+  const db = supabase;
+  const firebaseConfig = supabaseConfig;
+
+  const FIELD_TO_DB = {
+    dateKey: 'date_key', monthKey: 'month_key', createdAt: 'created_at', createdAtMs: 'created_at_ms',
+    deletedAt: 'deleted_at', deletedAtMs: 'deleted_at_ms', deletedBy: 'deleted_by', deletedByName: 'deleted_by_name',
+    actorName: 'actor_name', updatedAt: 'updated_at', updatedBy: 'updated_by'
+  };
+  const FIELD_FROM_DB = Object.fromEntries(Object.entries(FIELD_TO_DB).map(([a,b]) => [b,a]));
+
+  function toDbField(field) { return FIELD_TO_DB[field] || field; }
+  function fromDbRow(row = {}) {
+    const out = {};
+    for (const [k, v] of Object.entries(row || {})) out[FIELD_FROM_DB[k] || k] = v;
+    if (out.loc && typeof out.loc === 'object') {
+      if (out.lat == null && out.loc.lat != null) out.lat = out.loc.lat;
+      if (out.lng == null && out.loc.lng != null) out.lng = out.loc.lng;
+    }
+    return out;
+  }
+  function toDbPayload(data = {}) {
+    const out = {};
+    for (const [k, v] of Object.entries(data || {})) {
+      if (v === undefined) continue;
+      const key = toDbField(k);
+      out[key] = v;
+    }
+    if (data.loc && typeof data.loc === 'object') {
+      if (out.lat == null && data.loc.lat != null) out.lat = data.loc.lat;
+      if (out.lng == null && data.loc.lng != null) out.lng = data.loc.lng;
+    }
+    return out;
+  }
+  function normalizeDoc(table, row) {
+    const data = fromDbRow(row || {});
+    const id = data.id || data.username || row?.id || row?.username;
+    return { id, data: () => data, exists: () => !!row };
+  }
+  function normalizeSnapRows(table, rows = []) {
+    return { docs: (rows || []).map(row => normalizeDoc(table, row)) };
+  }
+  function collection(_db, table) { return { table }; }
+  function doc(_db, table, id) { return { table, id }; }
+  function where(field, op, value) { return { type:'where', field, op, value }; }
+  function orderBy(field, dir = 'asc') { return { type:'orderBy', field, dir }; }
+  function limit(count) { return { type:'limit', count }; }
+  function query(coll, ...clauses) { return { table: coll.table, clauses }; }
+  function serverTimestamp() { return new Date().toISOString(); }
+  const Timestamp = { fromMillis: (ms) => new Date(Number(ms || Date.now())).toISOString() };
+  function getFilterObject(q) {
+    const filters = {};
+    for (const c of (q.clauses || [])) {
+      if (c.type === 'where' && c.op === '==') filters[toDbField(c.field)] = c.value;
+    }
+    return filters;
+  }
+  function getOrderClause(q) {
+    return (q.clauses || []).find(c => c.type === 'orderBy') || null;
+  }
+  function getLimitClause(q) {
+    return (q.clauses || []).find(c => c.type === 'limit') || null;
+  }
+  function applyLocalClauses(rows, q) {
+    let out = [...(rows || [])];
+    for (const c of (q.clauses || [])) {
+      if (c.type === 'where') {
+        const field = c.field;
+        if (c.op === '==') out = out.filter(r => String(r[field] ?? '') === String(c.value ?? ''));
+        else if (c.op === '!=') out = out.filter(r => String(r[field] ?? '') !== String(c.value ?? ''));
+      }
+    }
+    const order = getOrderClause(q);
+    if (order) {
+      const dir = String(order.dir || 'asc').toLowerCase();
+      out.sort((a,b) => {
+        const av = a[order.field] ?? '', bv = b[order.field] ?? '';
+        if (av === bv) return 0;
+        return (av > bv ? 1 : -1) * (dir === 'desc' ? -1 : 1);
+      });
+    }
+    const lim = getLimitClause(q);
+    if (lim) out = out.slice(0, lim.count);
+    return out;
+  }
+  async function secureSelect(q) {
+    if (!appSessionToken) throw new Error('Session kosong. Login ulang.');
+    const realQ = typeof q === 'string' ? { table:q, clauses:[] } : q;
+    const order = getOrderClause(realQ);
+    const lim = getLimitClause(realQ);
+    const rows = await secureRpc('app_select', {
+      p_token: appSessionToken,
+      p_table: realQ.table,
+      p_filters: getFilterObject(realQ),
+      p_order: order ? toDbField(order.field) : null,
+      p_dir: order ? (order.dir || 'asc') : 'asc',
+      p_limit: lim ? lim.count : 1000
+    });
+    return applyLocalClauses((rows || []).map(fromDbRow), realQ);
+  }
+  async function getDoc(ref) {
+    const key = ref.table === 'users' ? 'username' : 'id';
+    const rows = await secureSelect({ table: ref.table, clauses: [where(key, '==', ref.id), limit(1)] });
+    return normalizeDoc(ref.table, rows[0] || null);
+  }
+  async function setDoc(ref, data, options = {}) {
+    if (!appSessionToken) throw new Error('Session kosong. Login ulang.');
+    const payload = toDbPayload(data);
+    if (ref.table === 'users') payload.username = ref.id;
+    else payload.id = ref.id;
+    const row = await secureRpc('app_upsert', {
+      p_token: appSessionToken,
+      p_table: ref.table,
+      p_id: String(ref.id),
+      p_payload: payload
+    });
+    return row;
+  }
+  async function addDoc(coll, data) {
+    if (!appSessionToken) throw new Error('Session kosong. Login ulang.');
+    const inserted = await secureRpc('app_insert', {
+      p_token: appSessionToken,
+      p_table: coll.table,
+      p_payload: toDbPayload(data)
+    });
+    return normalizeDoc(coll.table, inserted);
+  }
+  async function deleteDoc(ref) {
+    if (!appSessionToken) throw new Error('Session kosong. Login ulang.');
+    await secureRpc('app_delete', {
+      p_token: appSessionToken,
+      p_table: ref.table,
+      p_id: String(ref.id)
+    });
+  }
+  async function getDocs(q) {
+    const realQ = typeof q === 'string' ? { table:q, clauses:[] } : q;
+    const rows = await secureSelect(realQ);
+    return normalizeSnapRows(realQ.table, rows || []);
+  }
+  async function fetchQuerySnapshot(q, cb, errCb) {
+    try {
+      const rows = await secureSelect(q);
+      cb(normalizeSnapRows(q.table, rows || []));
+    } catch (e) {
+      console.error('Supabase secure fetch error:', e);
+      if (errCb) errCb(e);
+    }
+  }
+  function onSnapshot(q, cb, errCb) {
+    const realQ = typeof q === 'string' ? { table:q, clauses:[] } : q;
+    let closed = false;
+    let debounceTimer = null;
+
+    const refresh = () => {
+      if (closed) return;
+      fetchQuerySnapshot(realQ, cb, errCb);
+    };
+
+    const scheduleRefresh = (delay = 180) => {
+      if (closed) return;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(refresh, delay);
+    };
+
+    // Load pertama tetap lewat RPC secure.
+    refresh();
+
+    // Realtime aman: client cuma dengar tabel sinyal realtime_pings.
+    // Data asli tetap diambil lewat RPC secure sesuai session token.
+    const channelName = `rocky_rt_${realQ.table}_${Math.random().toString(36).slice(2)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'realtime_pings' }, (payload) => {
+        const changedTable = payload?.new?.table_name || '';
+        if (!changedTable || changedTable === realQ.table) scheduleRefresh();
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('Realtime aktif:', realQ.table);
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Realtime fallback polling:', realQ.table, status);
+        }
+      });
+
+    // Fallback hemat kalau websocket putus / HP sleep.
+    const timer = setInterval(refresh, 30000);
+
+    return () => {
+      closed = true;
+      clearTimeout(debounceTimer);
+      clearInterval(timer);
+      try { supabase.removeChannel(channel); } catch (e) { console.warn('removeChannel gagal:', e); }
+    };
+  }
+
+  const OFFICE_LOC = { lat: -6.786168, lng: 106.780918 };
+  const RADIUS_LIMIT = 200;
+  const SESSION_KEY = 'rocky_supabase_session_v1';
+  const ADMIN_USERNAMES = ['admin'];
+  let currentUser = null, currentPos = null, currentPage = 'login', historyFilter = 'daily', reportFilter = 'daily', selectedUserFilter = 'all';
+  let selectedRestoreJsonFile = null, selectedRestoreExcelFile = null;
+  let cachedTransactions = [], cachedAttendance = [], cachedUsers = [], cachedAuditLogs = [];
+  let unsubTransactions = null, unsubAttendance = null, unsubUsers = null, unsubAuditLogs = null, rangeStartDate = null, rangeEndDate = null;
+  let attendanceReady = false, isBusy = false, auditLogLimit = 10, recycleBinLimit = 20, recycleSearch = '', recycleUserFilter = 'all', historyDisplayLimit = 30, inactiveUserLimit = 30;
+  const TX_SYNC_LIMIT_ADMIN = 800, TX_SYNC_LIMIT_STAFF = 400, ATT_SYNC_LIMIT_ADMIN = 800, ATT_SYNC_LIMIT_STAFF = 400, AUDIT_SYNC_LIMIT = 40, HISTORY_PAGE_STEP = 30, INACTIVE_USER_STEP = 30;
+
+  const $ = (id) => document.getElementById(id);
+  const setLoading = (s) => {
+    isBusy = !!s;
+    const el = $('loading');
+    if (el) el.style.display = s ? 'flex' : 'none';
+  };
+  const showToast = (msg, isError = false) => {
+    const t = $('toast'); if (!t) return;
+    t.textContent = msg;
+    if (isError) { t.style.background='var(--red)'; t.style.color='white'; t.style.border='none'; }
+    else { t.style.background='var(--bg2)'; t.style.color='var(--text)'; t.style.border='1px solid var(--border)'; }
+    t.classList.add('show'); clearTimeout(window.__toastTimer); window.__toastTimer = setTimeout(()=>t.classList.remove('show'),3000);
+  };
+
+  const sanitizeUsername = (u) => String(u || '').trim().toLowerCase();
+  const isAdmin = () => !!currentUser && (ADMIN_USERNAMES.includes(sanitizeUsername(currentUser.username)) || currentUser.role === 'admin');
+  const getAttendanceCacheKey = (username) => `rocky_attendance_cache_${sanitizeUsername(username)}`;
+  function saveAttendanceCache(username, payload) {
+    if (!username) return;
+    localStorage.setItem(getAttendanceCacheKey(username), JSON.stringify({
+      dateKey: payload?.dateKey || toDateKey(nowDate()),
+      createdAtMs: Number(payload?.createdAtMs || Date.now()),
+      cachedAt: Date.now()
+    }));
+  }
+  function readAttendanceCache(username) {
+    if (!username) return null;
+    try {
+      const raw = localStorage.getItem(getAttendanceCacheKey(username));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || parsed.dateKey !== toDateKey(nowDate())) return null;
+      return parsed;
+    } catch (e) { return null; }
+  }
+  function clearAttendanceCache(username) {
+    if (!username) return;
+    localStorage.removeItem(getAttendanceCacheKey(username));
+  }
+  function preloadAttendanceCache() {
+    if (!currentUser || isAdmin()) return false;
+    const cached = readAttendanceCache(currentUser.username);
+    if (!cached) return false;
+    const exists = cachedAttendance.some(a => a.__cached && a.dateKey === cached.dateKey && a.user === currentUser.username);
+    if (!exists) {
+      cachedAttendance = [{
+        id: `cached_${currentUser.username}_${cached.dateKey}`,
+        user: sanitizeUsername(currentUser.username),
+        name: currentUser.name,
+        dateKey: cached.dateKey,
+        createdAtMs: cached.createdAtMs || Date.now(),
+        __cached: true
+      }, ...cachedAttendance.filter(a => !a.__cached)];
+    }
+    attendanceReady = false;
+    return true;
+  }
+  function stripCachedAttendance() {
+    cachedAttendance = cachedAttendance.filter(a => !a.__cached);
+  }
+  function formatAttendanceTime(rec) {
+    if (!rec) return '--:--';
+    const ms = getRecordTimeMs(rec);
+    if (!ms) return '--:--';
+    return new Date(ms).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit', timeZone:'Asia/Jakarta' });
+  }
+
+  const getRoleLabel = () => isAdmin() ? 'Admin' : 'Staff';
+  function getUserOptionsHtml(includeAll = true) {
+    const opts = activeUsers().map(u => `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)} (@${escapeHtml(u.username)})</option>`).join('');
+    return `${includeAll ? '<option value="all">Semua User</option>' : ''}${opts}`;
+  }
+  function sortUsers(list) {
+    return [...list].sort((a,b) => String(a.name || a.username || '').localeCompare(String(b.name || b.username || '')));
+  }
+  function getSelectedUserLabel() {
+    if (selectedUserFilter === 'all') return 'Semua User';
+    const found = cachedUsers.find(u => u.username === selectedUserFilter);
+    return found ? `${found.name} (@${found.username})` : selectedUserFilter;
+  }
+  function getUserByUsername(username) {
+    return cachedUsers.find(u => sanitizeUsername(u.username) === sanitizeUsername(username)) || null;
+  }
+  function getUserDataScopeLabel() {
+    return isAdmin() ? getSelectedUserLabel() : 'Data Saya';
+  }
+  function isRecordDeleted(rec) {
+    return !!rec && (rec.deleted === true || rec.deleted === 'true');
+  }
+  function isUserActive(rec) {
+    return !!rec && rec.active !== false && rec.active !== 'false';
+  }
+  function activeUsers(list = cachedUsers) {
+    return sortUsers((list || []).filter(isUserActive));
+  }
+  async function logAudit(action, detail = {}) {
+    try {
+      await addDoc(collection(db, 'audit_logs'), {
+        action,
+        detail,
+        actor: currentUser?.username || 'system',
+        actorName: currentUser?.name || 'System',
+        createdAt: serverTimestamp(),
+        createdAtMs: Date.now()
+      });
+    } catch (e) {
+      console.error('Audit log gagal:', e);
+    }
+  }
+  function getVisibleTransactions() {
+    const visible = cachedTransactions.filter(t => !isRecordDeleted(t));
+    if (!isAdmin() && currentUser?.username) {
+      const me = sanitizeUsername(currentUser.username);
+      return visible.filter(t => sanitizeUsername(t.user) === me);
+    }
+    return visible;
+  }
+  function getVisibleAttendance() {
+    return cachedAttendance.filter(a => !isRecordDeleted(a));
+  }
+  function getDeletedTransactions() {
+    return sortByCreatedDesc(cachedTransactions.filter(isRecordDeleted));
+  }
+  function getFilteredDeletedTransactions() {
+    let items = getDeletedTransactions();
+    if (recycleUserFilter !== 'all') items = items.filter(t => sanitizeUsername(t.user) === sanitizeUsername(recycleUserFilter));
+    if (recycleSearch.trim()) {
+      const q = recycleSearch.trim().toLowerCase();
+      items = items.filter(t =>
+        String(t.note || '').toLowerCase().includes(q) ||
+        String(t.name || '').toLowerCase().includes(q) ||
+        String(t.user || '').toLowerCase().includes(q) ||
+        String(t.id || '').toLowerCase().includes(q)
+      );
+    }
+    return items;
+  }
+  function setRecycleSearch(value) {
+    recycleSearch = String(value || '');
+    recycleBinLimit = 20;
+    renderSettingsSummary();
+  }
+  function setRecycleUserFilter(value) {
+    recycleUserFilter = value || 'all';
+    recycleBinLimit = 20;
+    renderSettingsSummary();
+  }
+  function resetRecycleFilters() {
+    recycleSearch = '';
+    recycleUserFilter = 'all';
+    recycleBinLimit = 20;
+    renderSettingsSummary();
+  }
+  function increaseRecycleBinLimit() {
+    recycleBinLimit += 20;
+    renderSettingsSummary();
+  }
+  function resetHistoryDisplayLimit() {
+    historyDisplayLimit = HISTORY_PAGE_STEP;
+  }
+  function increaseHistoryDisplayLimit() {
+    historyDisplayLimit += HISTORY_PAGE_STEP;
+    renderHistory();
+  }
+  function resetInactiveUserLimit() {
+    inactiveUserLimit = INACTIVE_USER_STEP;
+  }
+  function increaseInactiveUserLimit() {
+    inactiveUserLimit += INACTIVE_USER_STEP;
+    renderSettingsSummary();
+  }
+  function getFilteredAuditLogs() {
+    return sortByCreatedDesc(cachedAuditLogs).slice(0, auditLogLimit);
+  }
+  function increaseAuditLogLimit() {
+    auditLogLimit += 10;
+    renderSettingsSummary();
+  }
+  function summarizeAuditLog(log) {
+    const d = log?.detail || {};
+    if (log.action === 'user_upsert') return `Simpan user ${d.username || '-'}`;
+    if (log.action === 'user_soft_delete') return `Nonaktifkan user ${d.username || '-'}`;
+    if (log.action === 'user_hard_delete') return `Hapus permanen user ${d.username || '-'}`;
+    if (log.action === 'transaction_soft_delete') return `Hapus transaksi ${d.id || '-'}`;
+    if (log.action === 'transaction_restore') return `Pulihkan transaksi ${d.id || '-'}`;
+    if (log.action === 'transaction_hard_delete') return `Hapus permanen transaksi ${d.id || '-'}`;
+    if (log.action === 'reset_all_data') return 'Reset semua data aplikasi';
+    if (log.action === 'restore_data') return `Restore data ${d.format || ''}`.trim();
+    if (log.action === 'normalize_legacy_data') return `Normalisasi ${d.updated || 0} data`;
+    return log.action || 'audit';
+  }
+  function formatAuditTime(log) {
+    const ms = getRecordTimeMs(log);
+    return ms ? new Date(ms).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) : '-';
+  }
+  function getAdminDashboardData() {
+    const tx = getVisibleTransactions();
+    const att = getVisibleAttendance();
+    const today = toDateKey(nowDate());
+    const month = toMonthKey(nowDate());
+    const todayTx = tx.filter(t => getTransactionDateKey(t) === today);
+    const todayAtt = att.filter(a => extractDateKey(a) === today);
+    const omzetHariIni = todayTx.reduce((a,b)=>a+Number(b.amount||0),0);
+    const omzetBulanIni = tx.filter(t => getTransactionMonthKey(t) === month).reduce((a,b)=>a+Number(b.amount||0),0);
+    const activeToday = new Set(todayAtt.map(a => sanitizeUsername(a.user))).size;
+    const leaderboard = Object.values(tx.reduce((acc, t) => {
+      const key = sanitizeUsername(t.user);
+      if (!acc[key]) acc[key] = { user:key, name:t.name || key, omzet:0, transaksi:0 };
+      acc[key].omzet += Number(t.amount || 0);
+      acc[key].transaksi += 1;
+      return acc;
+    }, {})).sort((a,b)=>b.omzet-a.omzet).slice(0,5);
+    return { omzetHariIni, omzetBulanIni, activeToday, leaderboard, recentLogs: cachedAuditLogs.slice(0,5) };
+  }
+  function renderAdminDashboardPanels() {
+    if (!isAdmin()) return;
+    const board = $('admin-dashboard-panels');
+    if (!board) return;
+    const stats = getAdminDashboardData();
+    const recent = sortByCreatedDesc(cachedAuditLogs).slice(0, 6);
+    board.innerHTML = `
+      <div class="summary-grid page-in s3">
+        <div class="card" style="padding:14px 15px"><p class="label-xs" style="margin-bottom:8px">User Aktif Hari Ini</p><p style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;color:var(--green)">${stats.activeToday}</p></div>
+        <div class="card" style="padding:14px 15px"><p class="label-xs" style="margin-bottom:8px">User Aktif Sistem</p><p style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;color:var(--accent)">${activeUsers().length}</p></div>
+      </div>
+      <div class="card page-in s4" style="padding:16px 16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><p class="label-xs" style="margin:0">Ranking Omzet User</p><span class="user-chip">${getSelectedUserLabel()}</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${stats.leaderboard.length ? stats.leaderboard.map((row, idx) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)"><div><div style="font-size:12px;font-weight:700">#${idx+1} ${escapeHtml(row.name)}</div><div style="font-size:10px;color:var(--text-soft)">${row.transaksi} transaksi</div></div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700">Rp ${formatRupiah(row.omzet)}</div></div>`).join('') : `<div style="font-size:12px;color:var(--text-soft)">Belum ada data transaksi.</div>`}
+        </div>
+      </div>
+      <div class="card page-in s4" style="padding:16px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px">
+          <div>
+            <p class="label-xs" style="margin:0">Aktivitas Admin Terbaru</p>
+            <p style="font-size:11px;color:var(--text-soft);margin-top:4px">Ringkas, fokus ke aksi penting terakhir.</p>
+          </div>
+          <button onclick="router.navigate('settings')" class="btn btn-glass" style="padding:8px 10px;font-size:11px;white-space:nowrap">Lihat Semua</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${recent.length ? recent.map(log => `
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+              <div style="width:34px;height:34px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent)"><i class="fas fa-clock-rotate-left" style="font-size:12px"></i></div>
+              <div style="min-width:0;flex:1">
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+                  <div style="font-size:12px;font-weight:700;line-height:1.35">${escapeHtml(summarizeAuditLog(log))}</div>
+                  <span class="badge badge-blue" style="flex-shrink:0">${escapeHtml((log.action || 'log').replaceAll('_',' ').slice(0,14))}</span>
+                </div>
+                <div style="font-size:10px;color:var(--text-soft);margin-top:4px">${escapeHtml(log.actorName || log.actor || '-')} · ${escapeHtml(formatAuditTime(log))}</div>
+              </div>
+            </div>`).join('') : `<div style="font-size:12px;color:var(--text-soft)">Belum ada audit log.</div>`}
+        </div>
+      </div>`;
+  }
+
+
+  const getTheme = () => localStorage.getItem('theme') || 'dark';
+  const applyTheme = (t) => { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('theme', t); };
+  const toggleTheme = () => {
+    const next = getTheme() === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    document.querySelectorAll('.theme-toggle').forEach(b => b.innerHTML = next === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>');
+    document.querySelectorAll('input[type="date"].g-input').forEach(el => el.style.colorScheme = next);
+  };
+  applyTheme(getTheme());
+
+  function nowDate() { return new Date(); }
+  function getWIBDate(baseDate = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(baseDate).reduce((acc, part) => {
+      if (part.type !== 'literal') acc[part.type] = part.value;
+      return acc;
+    }, {});
+    return {
+      year: Number(parts.year),
+      month: Number(parts.month),
+      day: Number(parts.day),
+      hour: Number(parts.hour),
+      minute: Number(parts.minute),
+      second: Number(parts.second)
+    };
+  }
+  function getBusinessDateObject(baseDate = new Date()) {
+    const wib = getWIBDate(baseDate);
+    return new Date(Date.UTC(wib.year, wib.month - 1, wib.day));
+  }
+  function toDateKey(date = new Date()) {
+    const wib = getWIBDate(date);
+    const y = wib.year, m = String(wib.month).padStart(2,'0'), d = String(wib.day).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  function toMonthKey(date = new Date()) {
+    const wib = getWIBDate(date);
+    const y = wib.year, m = String(wib.month).padStart(2,'0');
+    return `${y}-${m}`;
+  }
+  function getBusinessYear(date = new Date()) {
+    return String(getWIBDate(date).year);
+  }
+  function dateToTimeInput(date) {
+    return new Intl.DateTimeFormat('id-ID', { dateStyle:'short', timeStyle:'medium', timeZone:'Asia/Jakarta' }).format(date);
+  }
+  function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(Number(n || 0)); }
+  function formatDateLabel(key) {
+    if (!key) return '-';
+    const [y,m,d] = key.split('-').map(Number);
+    return new Date(y, m-1, d).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function extractDateKey(item) {
+    if (!item) return '';
+    if (item.dateKey) return String(item.dateKey).slice(0, 10);
+    if (typeof item.time === 'string' && item.time.length >= 10) return item.time.slice(0, 10);
+    if (typeof item.createdAt === 'string' && item.createdAt.length >= 10) return item.createdAt.slice(0, 10);
+    if (item.createdAt?.toDate) return toDateKey(item.createdAt.toDate());
+    if (item.createdAtMs) return toDateKey(new Date(item.createdAtMs));
+    return '';
+  }
+  function getRecordTimeMs(item) {
+    if (!item) return 0;
+    if (item.createdAt?.toDate) return item.createdAt.toDate().getTime();
+    if (typeof item.createdAtMs === 'number' && Number.isFinite(item.createdAtMs)) return item.createdAtMs;
+    if (typeof item.time === 'string') {
+      const parsed = new Date(item.time.replace(' ', 'T') + '+07:00');
+      if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
+    }
+    if (typeof item.createdAt === 'string') {
+      const parsed = new Date(item.createdAt.replace(' ', 'T') + '+07:00');
+      if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
+    }
+    return 0;
+  }
+
+  function getTransactionDateKey(item) {
+    if (!item) return '';
+    if (item.dateKey) return String(item.dateKey).slice(0, 10);
+    return extractDateKey(item);
+  }
+  function getTransactionMonthKey(item) {
+    if (!item) return '';
+    if (item.monthKey) return String(item.monthKey).slice(0, 7);
+    const dateKey = getTransactionDateKey(item);
+    return dateKey ? dateKey.slice(0, 7) : '';
+  }
+  function sortByCreatedDesc(list) {
+    return [...list].sort((a,b) => getRecordTimeMs(b) - getRecordTimeMs(a));
+  }
+  function calculateDistance(la1,lo1,la2,lo2){const R=6371e3,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180,a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+  function calculateBonus(o) { return Math.round(Number(o || 0) * 0.015); }
+
+  async function seedDemoUserIfMissing() {
+    const ref = doc(db, 'users', 'aji');
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, { username:'aji', name:'Aji', pin:'123456', role:'staff', createdAt:serverTimestamp() });
+    }
+  }
+
+  async function login() {
+    const username = sanitizeUsername($('login-user')?.value);
+    const pin = String($('login-pin')?.value || '').trim();
+    if (!username || !pin) return showToast('Lengkapi username dan PIN!', true);
+    setLoading(true);
+    try {
+      const res = await secureRpc('app_login', { p_username: username, p_pin: pin });
+      const user = res?.user;
+      if (!res?.token || !user) throw new Error('Login gagal: token kosong');
+      appSessionToken = res.token;
+      localStorage.setItem(SECURE_SESSION_TOKEN_KEY, appSessionToken);
+      currentUser = { username: sanitizeUsername(user.username || username), name: user.name, pin: String(user.pin), role: user.role || 'staff', active: user.active !== false };
+      cachedTransactions = [];
+      cachedAttendance = [];
+      cachedAuditLogs = [];
+      preloadAttendanceCache();
+      localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+      bindRealtimeData();
+      router.navigate('home');
+      showToast(`✓ Login ${currentUser.name}`);
+    } catch (e) {
+      showToast(e.message || 'Login gagal', true);
+    }
+    setLoading(false);
+  }
+
+  function logout() {
+    if (!confirm('Keluar dari aplikasi?')) return;
+    const logoutUsername = currentUser?.username || null;
+    const oldToken = appSessionToken;
+    if (oldToken) secureRpc('app_logout', { p_token: oldToken }).catch(()=>{});
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SECURE_SESSION_TOKEN_KEY);
+    appSessionToken = '';
+    currentUser = null;
+    currentPos = null;
+    if (logoutUsername) clearAttendanceCache(logoutUsername);
+    cachedTransactions = [];
+    cachedAttendance = [];
+    cachedUsers = [];
+    cachedAuditLogs = [];
+    attendanceReady = false;
+    closeTransactionModal();
+    if (unsubTransactions) { unsubTransactions(); unsubTransactions = null; }
+    if (unsubAttendance) { unsubAttendance(); unsubAttendance = null; }
+    if (unsubUsers) { unsubUsers(); unsubUsers = null; }
+    if (unsubAuditLogs) { unsubAuditLogs(); unsubAuditLogs = null; }
+    router.navigate('login');
+    showToast('✓ Logout berhasil');
+  }
+
+  async function restoreSession() {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      appSessionToken = localStorage.getItem(SECURE_SESSION_TOKEN_KEY) || '';
+      if (!raw || !appSessionToken) return false;
+      const freshUser = await secureRpc('app_session', { p_token: appSessionToken });
+      currentUser = { username: sanitizeUsername(freshUser.username), name: freshUser.name, pin: String(freshUser.pin), role: freshUser.role || 'staff', active: freshUser.active !== false };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+      cachedTransactions = [];
+      cachedAttendance = [];
+      cachedAuditLogs = [];
+      preloadAttendanceCache();
+      bindRealtimeData();
+      return true;
+    } catch (e) {
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(SECURE_SESSION_TOKEN_KEY);
+      appSessionToken = '';
+      return false;
+    }
+  }
+
+
+  function bindRealtimeData() {
+    if (!currentUser) return;
+    attendanceReady = false;
+    preloadAttendanceCache();
+    if (unsubTransactions) unsubTransactions();
+    if (unsubAttendance) unsubAttendance();
+    if (unsubUsers) { unsubUsers(); unsubUsers = null; }
+    if (unsubAuditLogs) { unsubAuditLogs(); unsubAuditLogs = null; }
+
+    // Jangan pakai orderBy('createdAt') di query staff karena data lama/migrasi
+    // bisa belum konsisten field createdAt-nya. Itu bikin transaksi staff kadang
+    // kosong setelah clear cache/data, padahal admin masih bisa lihat.
+    const tq = isAdmin()
+      ? query(collection(db, 'transactions'), limit(TX_SYNC_LIMIT_ADMIN))
+      : query(collection(db, 'transactions'), where('user', '==', sanitizeUsername(currentUser.username)), limit(TX_SYNC_LIMIT_STAFF));
+    unsubTransactions = onSnapshot(tq, (snap) => {
+      cachedTransactions = sortByCreatedDesc(
+        snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      );
+      refreshCurrentPage();
+    }, async (err) => {
+      console.error(err);
+      try {
+        const fallbackQ = isAdmin()
+          ? query(collection(db, 'transactions'), limit(TX_SYNC_LIMIT_ADMIN))
+          : query(collection(db, 'transactions'), where('user', '==', sanitizeUsername(currentUser.username)), limit(TX_SYNC_LIMIT_STAFF));
+        const fallbackSnap = await getDocs(fallbackQ);
+        cachedTransactions = sortByCreatedDesc(
+          fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+        );
+        refreshCurrentPage();
+      } catch (e) {
+        console.error('Fallback transaksi gagal:', e);
+      }
+    });
+
+    const aq = isAdmin()
+      ? query(collection(db, 'attendance'), limit(ATT_SYNC_LIMIT_ADMIN))
+      : query(collection(db, 'attendance'), where('user', '==', sanitizeUsername(currentUser.username)), limit(ATT_SYNC_LIMIT_STAFF));
+    unsubAttendance = onSnapshot(aq, (snap) => {
+      stripCachedAttendance();
+      cachedAttendance = sortByCreatedDesc(
+        snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => !isRecordDeleted(a))
+      );
+      if (!isAdmin()) {
+        const today = toDateKey(nowDate());
+        const todayRec = cachedAttendance.find(a => extractDateKey(a) === today && sanitizeUsername(a.user) === currentUser.username);
+        if (todayRec) {
+          const createdAtMs = getRecordTimeMs(todayRec) || Date.now();
+          saveAttendanceCache(currentUser.username, { dateKey: today, createdAtMs });
+        } else {
+          clearAttendanceCache(currentUser.username);
+        }
+      }
+      attendanceReady = true;
+      refreshCurrentPage();
+    }, (err) => { attendanceReady = true; console.error(err); refreshCurrentPage(); });
+
+    if (isAdmin()) {
+      const uq = query(collection(db, 'users'), orderBy('name'));
+      unsubUsers = onSnapshot(uq, (snap) => {
+        cachedUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        refreshCurrentPage();
+      }, (err) => console.error(err));
+
+      const lq = query(collection(db, 'audit_logs'), orderBy('createdAt', 'desc'), limit(AUDIT_SYNC_LIMIT));
+      unsubAuditLogs = onSnapshot(lq, (snap) => {
+        cachedAuditLogs = sortByCreatedDesc(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        refreshCurrentPage();
+      }, (err) => console.error(err));
+    } else {
+      cachedUsers = currentUser ? [{ username: currentUser.username, name: currentUser.name, role: currentUser.role || 'staff', active: true }] : [];
+      cachedAuditLogs = [];
+    }
+
+    applyNavRoleLabels();
+  }
+
+  async function refreshCurrentPage() {
+    if (!currentUser) return;
+    if (currentPage === 'home') { await updateHomeStatus(); await updateHomeStats(); }
+    else if (currentPage === 'history') await renderHistory();
+    else if (currentPage === 'report') await renderReport();
+    else if (currentPage === 'settings') await renderSettingsSummary();
+  }
+
+  function hasClockedInToday() {
+    const today = toDateKey(nowDate());
+    const me = sanitizeUsername(currentUser?.username || '');
+    return cachedAttendance.some(a => extractDateKey(a) === today && (!me || sanitizeUsername(a.user) === me));
+  }
+  function canTransactNow() {
+    if (isAdmin()) return true;
+    if (!attendanceReady) return false;
+    return hasClockedInToday();
+  }
+  function getTodayAttendanceRecord() {
+    const today = toDateKey(nowDate());
+    return sortByCreatedDesc(cachedAttendance.filter(a => extractDateKey(a) === today))[0] || null;
+  }
+
+  function updateLocation() {
+    const info = $('loc-info'); if (!info) return;
+    info.innerHTML = `<span class="loc-chip loc-loading"><i class="fas fa-circle-notch fa-spin" style="font-size:10px"></i> Mencari GPS...</span>`;
+    if (!navigator.geolocation) {
+      info.innerHTML = `<span class="loc-chip loc-out"><i class="fas fa-xmark"></i> GPS tidak didukung</span>`; return;
+    }
+    navigator.geolocation.getCurrentPosition(pos => {
+      currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      const dist = calculateDistance(currentPos.lat, currentPos.lng, OFFICE_LOC.lat, OFFICE_LOC.lng);
+      info.innerHTML = dist <= RADIUS_LIMIT
+        ? `<span class="loc-chip loc-in"><i class="fas fa-circle" style="font-size:6px"></i> Dalam Radius · ${Math.round(dist)}m</span>`
+        : `<span class="loc-chip loc-out"><i class="fas fa-xmark"></i> Diluar Radius · ${Math.round(dist)}m</span>`;
+      updateHomeStatus();
+    }, () => {
+      info.innerHTML = `<span class="loc-chip loc-out"><i class="fas fa-triangle-exclamation"></i> Gagal ambil lokasi</span>`;
+    }, { enableHighAccuracy:true, timeout:10000, maximumAge:30000 });
+  }
+
+  async function handleClockIn() {
+    if (isBusy) return;
+    if (!currentUser) return;
+    if (hasClockedInToday()) return showToast('Sudah absen hari ini!');
+    if (!currentPos) return showToast('Tunggu lokasi!', true);
+    const dist = calculateDistance(currentPos.lat, currentPos.lng, OFFICE_LOC.lat, OFFICE_LOC.lng);
+    if (dist > RADIUS_LIMIT) return showToast(`Di luar radius (${Math.round(dist)}m)`, true);
+    setLoading(true);
+    try {
+      const nowMs = Date.now();
+      const todayKey = toDateKey(nowDate());
+      saveAttendanceCache(currentUser.username, { dateKey: todayKey, createdAtMs: nowMs });
+      cachedAttendance = [{
+        id: `cached_${currentUser.username}_${todayKey}`,
+        user: sanitizeUsername(currentUser.username),
+        name: currentUser.name,
+        dateKey: todayKey,
+        createdAtMs: nowMs,
+        __cached: true
+      }, ...cachedAttendance.filter(a => !a.__cached)];
+      attendanceReady = true;
+      refreshCurrentPage();
+      await addDoc(collection(db, 'attendance'), {
+        user: sanitizeUsername(currentUser.username),
+        name: currentUser.name,
+        dateKey: todayKey,
+        createdAt: serverTimestamp(),
+        createdAtMs: nowMs,
+        loc: currentPos
+      });
+      showToast('✓ Absen berhasil');
+    } catch (e) {
+      showToast('Gagal absen', true);
+    }
+    setLoading(false);
+  }
+
+  function bindTransactionAmountFormatter(inputId) {
+    const input = $(inputId);
+    if (!input || input.dataset.bound === 'true') return;
+    input.dataset.bound = 'true';
+    input.addEventListener('input', function () {
+      const numeric = (this.value || '').replace(/\D/g, '');
+      const value = parseInt(numeric || '0', 10);
+      this.setAttribute('data-numeric', String(value));
+      this.value = numeric ? formatRupiah(value) : '';
+    });
+  }
+
+  async function openTransactionModal() {
+    if (!currentUser) return showToast('Silakan login dulu!', true);
+    const modal = $('transaction-modal');
+    bindTransactionAmountFormatter('modal-pos-amount');
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    $('modal-pos-note').value = '';
+    $('modal-pos-amount').value = '';
+    $('modal-pos-amount').setAttribute('data-numeric', '0');
+    const statusBox = $('modal-pos-status');
+    if (isAdmin()) {
+      statusBox.innerHTML = `<div style="display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--accent-dim);border:1px solid rgba(91,143,255,0.18);border-radius:11px"><i class="fas fa-bolt" style="color:var(--accent);font-size:13px"></i><span style="font-size:12.5px;color:var(--accent);font-weight:600">Admin bisa transaksi langsung tanpa absen</span></div>`;
+    } else if (!attendanceReady) {
+      statusBox.innerHTML = `<div style="display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--surface);border:1px solid var(--border);border-radius:11px"><i class="fas fa-circle-notch fa-spin" style="color:var(--text-soft);font-size:13px"></i><span style="font-size:12.5px;color:var(--text-soft);font-weight:600">Memeriksa absensi hari ini...</span></div>`;
+    } else if (canTransactNow()) {
+      statusBox.innerHTML = `<div style="display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--green-dim);border:1px solid rgba(82,216,158,0.18);border-radius:11px"><i class="fas fa-circle-check" style="color:var(--green);font-size:13px"></i><span style="font-size:12.5px;color:var(--green);font-weight:600">Siap melakukan transaksi</span></div>`;
+    } else {
+      statusBox.innerHTML = `<div style="display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--red-dim);border:1px solid rgba(255,107,107,0.2);border-radius:11px"><i class="fas fa-circle-xmark" style="color:var(--red);font-size:13px"></i><span style="font-size:12.5px;color:var(--red);font-weight:600">Absen dulu sebelum transaksi!</span></div>`;
+    }
+    setTimeout(() => $('modal-pos-note').focus(), 100);
+  }
+  function closeTransactionModal() {
+    const modal = $('transaction-modal'); if (!modal) return;
+    modal.classList.remove('show'); modal.style.display = 'none';
+  }
+
+  async function handleTransactionFromModal() {
+    if (isBusy) return;
+    if (!canTransactNow()) {
+      showToast('Absen dulu sebelum transaksi!', true);
+      closeTransactionModal();
+      setTimeout(() => router.navigate('home'), 500);
+      return;
+    }
+    const amount = parseInt($('modal-pos-amount')?.getAttribute('data-numeric') || '0', 10);
+    const note = String($('modal-pos-note')?.value || '').trim() || 'Transaksi';
+    if (!amount || amount <= 0) return showToast('Nominal tidak valid!', true);
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'transactions'), {
+        user: sanitizeUsername(currentUser.username),
+        name: currentUser.name,
+        amount,
+        note,
+        dateKey: toDateKey(nowDate()),
+        monthKey: toMonthKey(nowDate()),
+        createdAt: serverTimestamp(),
+        createdAtMs: Date.now()
+      });
+      showToast('✓ Transaksi disimpan!');
+      closeTransactionModal();
+    } catch (e) {
+      showToast('Gagal transaksi', true);
+    }
+    setLoading(false);
+  }
+
+  async function deleteTransaction(id) {
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const trx = cachedTransactions.find(t => t.id === id);
+    if (!trx) return showToast('Transaksi tidak ditemukan!', true);
+    if (trx.user !== currentUser.username && !isAdmin()) return showToast('Tidak bisa hapus transaksi orang lain!', true);
+    const pin = prompt(`Hapus transaksi Rp ${formatRupiah(trx.amount)}?\nMasukkan PIN:`);
+    if (!pin) return;
+    if (String(pin) !== String(currentUser.pin)) return showToast('PIN salah!', true);
+    setLoading(true);
+    try {
+      await setDoc(doc(db, 'transactions', id), {
+        deleted: true,
+        deletedAt: serverTimestamp(),
+        deletedAtMs: Date.now(),
+        deletedBy: currentUser.username,
+        deletedByName: currentUser.name
+      }, { merge: true });
+      await logAudit('transaction_soft_delete', { id, user: trx.user, amount: Number(trx.amount || 0), note: trx.note || 'Transaksi' });
+      showToast(`✓ Transaksi dihapus aman`);
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal hapus', true);
+    }
+    setLoading(false);
+  }
+
+
+  async function restoreDeletedTransaction(id) {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const trx = cachedTransactions.find(t => t.id === id);
+    if (!trx) return showToast('Transaksi tidak ditemukan!', true);
+    if (!isRecordDeleted(trx)) return showToast('Transaksi ini belum dihapus.', true);
+    const pin = prompt(`Pulihkan transaksi Rp ${formatRupiah(trx.amount)}?\nMasukkan PIN admin:`);
+    if (!pin) return;
+    if (String(pin) !== String(currentUser.pin)) return showToast('PIN salah!', true);
+    setLoading(true);
+    try {
+      await setDoc(doc(db, 'transactions', id), {
+        deleted: false,
+        deletedAt: null,
+        deletedAtMs: null,
+        deletedBy: null,
+        deletedByName: null
+      }, { merge: true });
+      await logAudit('transaction_restore', { id, user: trx.user, amount: Number(trx.amount || 0) });
+      showToast('✓ Transaksi dipulihkan');
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal memulihkan transaksi', true);
+    }
+    setLoading(false);
+  }
+
+  async function hardDeleteTransaction(id) {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const trx = cachedTransactions.find(t => t.id === id);
+    if (!trx) return showToast('Transaksi tidak ditemukan!', true);
+    if (!isRecordDeleted(trx)) return showToast('Hapus permanen hanya dari data terhapus.', true);
+    const pin = prompt(`HAPUS PERMANEN transaksi Rp ${formatRupiah(trx.amount)}?\nKetik PIN admin:`);
+    if (!pin) return;
+    if (String(pin) !== String(currentUser.pin)) return showToast('PIN salah!', true);
+    if (!confirm('Data akan hilang permanen dan tidak bisa dikembalikan. Lanjutkan?')) return;
+    setLoading(true);
+    try {
+      await deleteDoc(doc(db, 'transactions', id));
+      await logAudit('transaction_hard_delete', { id, user: trx.user, amount: Number(trx.amount || 0), note: trx.note || 'Transaksi' });
+      showToast('✓ Transaksi dihapus permanen');
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal hapus permanen', true);
+    }
+    setLoading(false);
+  }
+
+  async function bulkRestoreDeletedTransactions() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const items = getFilteredDeletedTransactions();
+    if (!items.length) return showToast('Tidak ada data terhapus sesuai filter', true);
+    const pin = prompt(`Pulihkan ${items.length} transaksi terhapus sesuai filter?\nMasukkan PIN admin:`);
+    if (!pin) return;
+    if (String(pin) !== String(currentUser.pin)) return showToast('PIN salah!', true);
+    if (!confirm(`Pulihkan ${items.length} transaksi?`)) return;
+    setLoading(true);
+    try {
+      for (const trx of items) {
+        await setDoc(doc(db, 'transactions', trx.id), {
+          deleted: false,
+          deletedAt: null,
+          deletedAtMs: null,
+          deletedBy: null,
+          deletedByName: null
+        }, { merge: true });
+      }
+      await logAudit('transaction_restore_bulk', { count: items.length, filterUser: recycleUserFilter, q: recycleSearch || '' });
+      showToast(`✓ ${items.length} transaksi dipulihkan`);
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal pulihkan banyak data', true);
+    }
+    setLoading(false);
+  }
+
+  async function bulkHardDeleteDeletedTransactions() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const items = getFilteredDeletedTransactions();
+    if (!items.length) return showToast('Tidak ada data terhapus sesuai filter', true);
+    const pin = prompt(`HAPUS PERMANEN ${items.length} transaksi sesuai filter?\nKetik PIN admin:`);
+    if (!pin) return;
+    if (String(pin) !== String(currentUser.pin)) return showToast('PIN salah!', true);
+    if (!confirm(`Data sebanyak ${items.length} transaksi akan hilang permanen. Lanjutkan?`)) return;
+    setLoading(true);
+    try {
+      for (const trx of items) {
+        await deleteDoc(doc(db, 'transactions', trx.id));
+      }
+      await logAudit('transaction_hard_delete_bulk', { count: items.length, filterUser: recycleUserFilter, q: recycleSearch || '' });
+      showToast(`✓ ${items.length} transaksi dihapus permanen`);
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal hapus permanen banyak data', true);
+    }
+    setLoading(false);
+  }
+
+  async function updateHomeStatus() {
+    const el = $('home-status'); if (!el) return;
+    if (isAdmin()) {
+      const userCount = cachedUsers.length || new Set(cachedTransactions.map(t => t.user)).size || 0;
+      const activeToday = new Set(cachedAttendance.filter(a => extractDateKey(a) === toDateKey(nowDate())).map(a => sanitizeUsername(a.user))).size;
+      el.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--accent)"><i class="fas fa-shield-halved"></i> Panel admin aktif</div><div style="font-size:12px;color:var(--text-soft)">Total user: ${userCount} · aktif hari ini: ${activeToday}</div><div style="font-size:11px;color:var(--text-ghost)">Admin bisa transaksi langsung tanpa absen.</div></div>`;
+      return;
+    }
+    if (!attendanceReady) {
+      if (hasClockedInToday()) {
+        const rec = getTodayAttendanceRecord();
+        const jam = formatAttendanceTime(rec);
+        el.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--green)"><i class="fas fa-circle-check"></i> Status absen tersimpan</div><div style="font-size:12px;color:var(--text-soft)">Jam absen: ${jam} · memverifikasi ke server...</div></div>`;
+      } else {
+        el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-soft)"><i class="fas fa-circle-notch fa-spin"></i> Memuat status absen...</div>`;
+      }
+    } else if (hasClockedInToday()) {
+      const rec = getTodayAttendanceRecord();
+      const jam = formatAttendanceTime(rec);
+      el.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--green)"><i class="fas fa-circle-check"></i> Sudah absen hari ini</div><div style="font-size:12px;color:var(--text-soft)">Jam absen: ${jam}</div></div>`;
+    } else {
+      const dist = currentPos ? calculateDistance(currentPos.lat, currentPos.lng, OFFICE_LOC.lat, OFFICE_LOC.lng) : null;
+      const disabled = !currentPos || (dist && dist > RADIUS_LIMIT);
+      el.innerHTML = `<button onclick="handleClockIn()" ${disabled?'disabled':''} class="btn btn-primary" style="padding:12px 16px;width:auto;border-radius:12px"><i class="fas fa-fingerprint" style="font-size:13px"></i> Absen</button>`;
+    }
+  }
+
+
+  async function updateHomeStats() {
+    const today = toDateKey(nowDate());
+    const month = toMonthKey(nowDate());
+    const visibleTransactions = getVisibleTransactions();
+    const visibleAttendance = getVisibleAttendance();
+    const sourceTransactions = isAdmin() && selectedUserFilter !== 'all'
+      ? visibleTransactions.filter(t => t.user === selectedUserFilter)
+      : visibleTransactions;
+    const sourceAttendance = isAdmin() && selectedUserFilter !== 'all'
+      ? visibleAttendance.filter(a => a.user === selectedUserFilter)
+      : visibleAttendance;
+    const pendapatanHariIni = sourceTransactions.filter(t => extractDateKey(t) === today).reduce((a,b)=>a+Number(b.amount||0),0);
+    const omzetBulanan = sourceTransactions.filter(t => t.monthKey === month).reduce((a,b)=>a+Number(b.amount||0),0);
+    const bonus = calculateBonus(omzetBulanan);
+    const rec = sortByCreatedDesc(sourceAttendance.filter(a => extractDateKey(a) === today))[0] || null;
+    if ($('today-income')) $('today-income').innerText = `Rp ${formatRupiah(pendapatanHariIni)}`;
+    if ($('total-bonus')) $('total-bonus').innerText = `Rp ${formatRupiah(bonus)}`;
+    if ($('bonus-text')) $('bonus-text').innerText = `${month} · ${isAdmin() ? getSelectedUserLabel() : 'reset tiap bulan'}`;
+    if ($('month-omzet')) $('month-omzet').innerText = `Rp ${formatRupiah(omzetBulanan)}`;
+    if ($('today-attendance-info')) $('today-attendance-info').innerText = rec ? formatAttendanceTime(rec).slice(0,5) : '--:--';
+    const card = $('today-attendance-card'), lbl = $('today-attendance-label'), info = $('today-attendance-info');
+    if (card && lbl && info) {
+      if (rec) {
+        card.style.background = 'var(--green-dim)'; card.style.borderColor = 'rgba(82,216,158,0.2)';
+        lbl.style.color = 'var(--green)'; info.style.color = 'var(--green)';
+      } else {
+        card.style.background = 'var(--red-dim)'; card.style.borderColor = 'rgba(255,107,107,0.2)';
+        lbl.style.color = 'var(--red)'; info.style.color = 'var(--red)';
+      }
+    }
+    if ($('scope-chip')) $('scope-chip').textContent = isAdmin() ? getSelectedUserLabel() : 'Data Saya';
+    renderAdminDashboardPanels();
+  }
+
+  function getFilteredTransactions() {
+    const visible = getVisibleTransactions();
+    const source = isAdmin() && selectedUserFilter !== 'all' ? visible.filter(t => t.user === selectedUserFilter) : visible;
+    const today = toDateKey(nowDate());
+    const month = toMonthKey(nowDate());
+    const year = getBusinessYear(nowDate());
+    if (historyFilter === 'daily') return source.filter(t => getTransactionDateKey(t) === today);
+    if (historyFilter === 'monthly') return source.filter(t => getTransactionMonthKey(t) === month);
+    if (historyFilter === 'yearly') return source.filter(t => String(getTransactionDateKey(t) || '').startsWith(year));
+    if (historyFilter === 'range' && rangeStartDate && rangeEndDate) return source.filter(t => { const dateKey = getTransactionDateKey(t); return dateKey >= rangeStartDate && dateKey <= rangeEndDate; });
+    return source;
+  }
+
+
+  async function renderHistory() {
+    const list = $('history-list'); if (!list) return;
+    const filtered = sortByCreatedDesc(getFilteredTransactions());
+    const total = filtered.reduce((a,b)=>a+Number(b.amount||0),0);
+    const visibleItems = filtered.slice(0, historyDisplayLimit);
+    const hasMore = filtered.length > visibleItems.length;
+    const filterBox = isAdmin() ? `
+      <div style="margin-bottom:10px" class="page-in s1">
+        <select id="admin-history-user" class="g-input" onchange="setSelectedUserFilter(this.value)">${getUserOptionsHtml(true)}</select>
+      </div>` : '';
+    list.innerHTML = `
+      <div class="stat-hero page-in" style="margin-bottom:12px">
+        <p class="stat-label">${isAdmin() ? 'Total Transaksi Global' : 'Total Transaksi'}</p>
+        <p class="stat-value">Rp ${formatRupiah(total)}</p>
+        <p class="stat-sub">Menampilkan ${visibleItems.length} dari ${filtered.length} transaksi · ${isAdmin() ? getSelectedUserLabel() : 'akun saya'}</p>
+      </div>
+      ${filterBox}
+      <div style="display:flex;gap:7px;margin-bottom:9px" class="page-in s1">
+        <input type="date" id="history-range-start" class="g-input" style="flex:1;font-size:11px;padding:9px 11px;color-scheme:${getTheme()}">
+        <span style="font-size:11px;color:var(--text-ghost);align-self:center;flex-shrink:0">–</span>
+        <input type="date" id="history-range-end" class="g-input" style="flex:1;font-size:11px;padding:9px 11px;color-scheme:${getTheme()}">
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:12px" class="page-in s2">
+        <button onclick="filterHistoryByDateRange()" class="btn btn-primary" style="flex:1;padding:9px;font-size:12px">Cari</button>
+        <button onclick="resetHistoryFilter()" class="btn btn-glass" style="flex:1;padding:9px;font-size:12px">Reset</button>
+      </div>
+      <div class="tab-group page-in s2" style="margin-bottom:14px">
+        <button onclick="setHistoryFilter('daily')" class="tab-btn ${historyFilter==='daily'?'active':''}">Hari Ini</button>
+        <button onclick="setHistoryFilter('monthly')" class="tab-btn ${historyFilter==='monthly'?'active':''}">Bulan Ini</button>
+        <button onclick="setHistoryFilter('yearly')" class="tab-btn ${historyFilter==='yearly'?'active':''}">Tahun Ini</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px" class="page-in s3">
+        ${visibleItems.map(t => `
+          <div class="trx-card">
+            <div class="trx-icon"><i class="fas fa-arrow-trend-up"></i></div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px;flex-wrap:wrap">
+                <span class="trx-amount">Rp ${formatRupiah(t.amount)}</span>
+                <span class="badge badge-blue">POS</span>
+                ${isAdmin() ? `<span class="user-chip"><i class="fas fa-user" style="font-size:10px"></i>${escapeHtml(t.name || t.user)}</span>` : ''}
+              </div>
+              <p class="trx-note">${escapeHtml(t.note || 'Transaksi')}</p>
+              <p class="trx-time">${(() => { const ms = getRecordTimeMs(t); return ms ? dateToTimeInput(new Date(ms)) : formatDateLabel(getTransactionDateKey(t)); })()}</p>
+            </div>
+            <button onclick="deleteTransaction('${t.id}')" class="btn btn-danger" style="width:34px;height:34px;flex-shrink:0;border-radius:9px;padding:0;font-size:11px"><i class="fas fa-trash-can"></i></button>
+          </div>
+        `).join('') || `<div style="text-align:center;padding:56px 0;color:var(--text-ghost)"><i class="fas fa-inbox" style="font-size:30px;margin-bottom:10px;display:block;opacity:0.5"></i><p style="font-size:12.5px">Tidak ada transaksi</p></div>`}
+      </div>
+      ${hasMore ? `<button onclick="increaseHistoryDisplayLimit()" class="btn btn-glass page-in s4" style="width:100%;margin-top:12px;padding:11px 12px;font-size:12px">Muat ${Math.min(HISTORY_PAGE_STEP, filtered.length - visibleItems.length)} transaksi lagi</button>` : ''}
+    `;
+    if ($('history-range-start')) $('history-range-start').value = rangeStartDate || '';
+    if ($('history-range-end')) $('history-range-end').value = rangeEndDate || '';
+    if ($('admin-history-user')) $('admin-history-user').value = selectedUserFilter;
+  }
+
+
+  async function renderReport() {
+    const rv = $('report-view'); if (!rv) return;
+    const visibleTransactions = getVisibleTransactions();
+    const visibleAttendance = getVisibleAttendance();
+    const sourceTransactions = isAdmin() && selectedUserFilter !== 'all' ? visibleTransactions.filter(t => t.user === selectedUserFilter) : visibleTransactions;
+    const sourceAttendance = isAdmin() && selectedUserFilter !== 'all' ? visibleAttendance.filter(a => a.user === selectedUserFilter) : visibleAttendance;
+    const today = toDateKey(nowDate()), month = toMonthKey(nowDate()), year = getBusinessYear(nowDate());
+    let ft = [], fa = [], title = '';
+    if (reportFilter === 'daily') {
+      title = `${isAdmin() ? 'Global' : 'Hari Ini'} (${today})`;
+      ft = sourceTransactions.filter(t => getTransactionDateKey(t) === today);
+      fa = sourceAttendance.filter(a => extractDateKey(a) === today);
+    } else if (reportFilter === 'monthly') {
+      title = `Bulan ${month}`;
+      ft = sourceTransactions.filter(t => getTransactionMonthKey(t) === month);
+      fa = sourceAttendance.filter(a => String(extractDateKey(a) || '').startsWith(month));
+    } else {
+      title = `Tahun ${year}`;
+      ft = sourceTransactions.filter(t => String(getTransactionDateKey(t) || '').startsWith(year));
+      fa = sourceAttendance.filter(a => String(extractDateKey(a) || '').startsWith(year));
+    }
+    const omzet = ft.reduce((a,b)=>a+Number(b.amount||0),0);
+    const bonus = calculateBonus(omzet);
+    const hadir = new Set(fa.map(a => `${sanitizeUsername(a.user)}-${extractDateKey(a)}`)).size;
+    const userAktif = new Set(ft.map(t => t.user)).size;
+    rv.innerHTML = `
+      ${isAdmin() ? `<div style="margin-bottom:10px" class="page-in s1"><select id="admin-report-user" class="g-input" onchange="setSelectedUserFilter(this.value)">${getUserOptionsHtml(true)}</select></div>` : ''}
+      <div class="stat-hero page-in">
+        <p class="stat-label">${isAdmin() ? 'Laporan Global' : 'Total Omzet'} · ${title}</p>
+        <p class="stat-value">Rp ${formatRupiah(omzet)}</p>
+        <p class="stat-sub">${ft.length} transaksi · ${isAdmin() ? getSelectedUserLabel() : currentUser.name}</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px" class="page-in s1">
+        <div class="stat-mini">
+          <p class="stat-mini-lbl">${isAdmin() ? 'User Aktif' : 'Hadir'}</p>
+          <p class="stat-mini-num" style="color:var(--green)">${isAdmin() ? userAktif : hadir}</p>
+          <p style="font-size:9.5px;color:var(--text-ghost);margin-top:3px">${isAdmin() ? 'user' : 'hari'}</p>
+        </div>
+        <div class="stat-mini">
+          <p class="stat-mini-lbl">Bonus</p>
+          <p class="stat-mini-num" style="color:var(--amber)">${formatRupiah(bonus)}</p>
+          <p style="font-size:9.5px;color:var(--text-ghost);margin-top:3px">FEE</p>
+        </div>
+      </div>
+      <div class="card page-in s3" style="padding:16px 18px">
+        <p class="label-xs">${isAdmin() ? 'Absensi Terbaru' : 'Daftar Hadir'}</p>
+        <div style="max-height:180px;overflow-y:auto">
+          ${sortByCreatedDesc(fa).slice(0, 30).map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;gap:10px"><span style="color:var(--text);font-weight:500">${isAdmin() ? `${escapeHtml(a.name || a.user)} · ` : ''}${formatDateLabel(extractDateKey(a))}</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-soft)">${formatAttendanceTime(a)}</span></div>`).join('') || '<p style="text-align:center;font-size:12px;color:var(--text-ghost);padding:10px 0">Belum ada absen</p>'}
+        </div>
+      </div>
+    `;
+    if ($('admin-report-user')) $('admin-report-user').value = selectedUserFilter;
+  }
+
+
+
+  function fillAdminUserForm(username = '') {
+    if (!isAdmin()) return;
+    const target = sanitizeUsername(username || $('admin-user-select')?.value || '');
+    const data = getUserByUsername(target);
+    if ($('admin-user-select')) $('admin-user-select').value = target || '';
+    if ($('admin-user-username')) $('admin-user-username').value = data?.username || target || '';
+    if ($('admin-user-name')) $('admin-user-name').value = data?.name || '';
+    if ($('admin-user-pin')) $('admin-user-pin').value = data?.pin || '';
+    if ($('admin-user-role')) $('admin-user-role').value = String(data?.role || 'staff');
+  }
+
+  function clearAdminUserForm() {
+    if ($('admin-user-select')) $('admin-user-select').value = '';
+    if ($('admin-user-username')) $('admin-user-username').value = '';
+    if ($('admin-user-name')) $('admin-user-name').value = '';
+    if ($('admin-user-pin')) $('admin-user-pin').value = '';
+    if ($('admin-user-role')) $('admin-user-role').value = 'staff';
+  }
+
+  async function saveAdminUser() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const username = sanitizeUsername($('admin-user-username')?.value);
+    const name = String($('admin-user-name')?.value || '').trim();
+    const pin = String($('admin-user-pin')?.value || '').trim();
+    const role = String($('admin-user-role')?.value || 'staff').trim().toLowerCase();
+    if (!username || !name || !pin) return showToast('Lengkapi username, nama, dan PIN!', true);
+    if (!/^[a-z0-9_-]{3,30}$/.test(username)) return showToast('Username hanya boleh huruf kecil, angka, _ atau - (min 3)', true);
+    if (name.length < 2) return showToast('Nama terlalu pendek', true);
+    if (pin.length < 3) return showToast('PIN minimal 3 digit/karakter', true);
+    if (!['admin','staff'].includes(role)) return showToast('Role tidak valid!', true);
+    setLoading(true);
+    try {
+      const ref = doc(db, 'users', username);
+      const snap = await getDoc(ref);
+      const existing = snap.exists() ? snap.data() : null;
+      await setDoc(ref, {
+        username,
+        name,
+        pin,
+        role,
+        active: true,
+        updatedAt: serverTimestamp(),
+        updatedBy: currentUser.username,
+        createdAt: existing?.createdAt || serverTimestamp()
+      }, { merge: true });
+      await logAudit('user_upsert', { username, role, existed: !!existing });
+      showToast(existing ? '✓ User diperbarui' : '✓ User ditambahkan');
+      selectedUserFilter = username;
+      clearAdminUserForm();
+      await renderSettingsSummary();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal simpan user', true);
+    }
+    setLoading(false);
+  }
+
+  async function deleteAdminUser() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const username = sanitizeUsername($('admin-user-select')?.value || $('admin-user-username')?.value);
+    if (!username) return showToast('Pilih user dulu!', true);
+    if (sanitizeUsername(currentUser?.username) === username) return showToast('Tidak bisa nonaktifkan akun admin yang sedang dipakai!', true);
+    const user = getUserByUsername(username);
+    if (!confirm(`Nonaktifkan user ${user?.name || username} (@${username})? Data transaksi dan absensi tetap disimpan.`)) return;
+    setLoading(true);
+    try {
+      await setDoc(doc(db, 'users', username), {
+        active: false,
+        deleted: true,
+        deletedAt: serverTimestamp(),
+        deletedAtMs: Date.now(),
+        deletedBy: currentUser.username
+      }, { merge: true });
+      if (selectedUserFilter === username) selectedUserFilter = 'all';
+      clearAdminUserForm();
+      await logAudit('user_soft_delete', { username });
+      showToast(`✓ User ${username} dinonaktifkan`);
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal nonaktifkan user', true);
+    }
+    setLoading(false);
+  }
+
+  async function hardDeleteAdminUser() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const username = sanitizeUsername($('admin-user-select')?.value || $('admin-user-username')?.value);
+    if (!username) return showToast('Pilih user dulu!', true);
+    if (sanitizeUsername(currentUser?.username) === username) return showToast('Tidak bisa hapus permanen akun yang sedang dipakai!', true);
+    const user = getUserByUsername(username);
+    if (!user) return showToast('User tidak ditemukan!', true);
+    if (isUserActive(user)) return showToast('Nonaktifkan user dulu sebelum hapus permanen!', true);
+    const pin = prompt(`HAPUS PERMANEN user ${user?.name || username} (@${username})?\nKetik PIN admin:`);
+    if (!pin) return;
+    if (String(pin) !== String(currentUser.pin)) return showToast('PIN salah!', true);
+    if (!confirm('Akun user akan dihapus permanen. Data transaksi dan absensi user tetap disimpan untuk arsip. Lanjutkan?')) return;
+    setLoading(true);
+    try {
+      await deleteDoc(doc(db, 'users', username));
+      if (selectedUserFilter === username) selectedUserFilter = 'all';
+      clearAdminUserForm();
+      await logAudit('user_hard_delete', { username });
+      showToast(`✓ User ${username} dihapus permanen`);
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal hapus permanen user', true);
+    }
+    setLoading(false);
+  }
+
+  function serializeTimestamp(value) {
+    if (!value) return null;
+    if (value.toDate) return value.toDate().toISOString();
+    if (typeof value === 'string') return value;
+    return null;
+  }
+
+  function getBackupPayload() {
+    return {
+      version: 'supabase-secure-v2',
+      projectId: supabaseConfig.projectId,
+      exportedAt: new Date().toISOString(),
+      exportedBy: currentUser?.username || 'admin',
+      data: {
+        users: sortUsers(cachedUsers).map(u => ({
+          username: u.username, name: u.name, pin: String(u.pin || ''), role: String(u.role || 'staff'),
+          active: u.active !== false, createdAt: serializeTimestamp(u.createdAt) || null
+        })),
+        attendance: sortByCreatedDesc(getVisibleAttendance()).map(a => ({
+          user: a.user, name: a.name, dateKey: a.dateKey || extractDateKey(a),
+          lat: a.lat ?? a.loc?.lat ?? null, lng: a.lng ?? a.loc?.lng ?? null,
+          createdAt: serializeTimestamp(a.createdAt) || null,
+          createdAtMs: a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAtMs || Date.now())
+        })),
+        transactions: sortByCreatedDesc(getVisibleTransactions()).map(t => ({
+          user: t.user, name: t.name, note: t.note || 'Transaksi', amount: Number(t.amount || 0),
+          dateKey: t.dateKey || extractDateKey(t), monthKey: t.monthKey || toMonthKey(new Date()),
+          createdAt: serializeTimestamp(t.createdAt) || null,
+          createdAtMs: t.createdAt?.toDate ? t.createdAt.toDate().getTime() : (t.createdAtMs || Date.now())
+        }))
+      }
+    };
+  }
+
+  function downloadTextFile(content, filename, mimeType = 'text/plain;charset=utf-8') {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function csvEscape(value) {
+    const s = String(value ?? '');
+    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  }
+
+  function toCsv(rows, headers) {
+    const lines = [headers.join(',')];
+    for (const row of rows) lines.push(headers.map(h => csvEscape(row[h])).join(','));
+    return lines.join('\n');
+  }
+
+  function parseCsv(text) {
+    const rows = [];
+    let row = [], value = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      const next = text[i + 1];
+      if (inQuotes) {
+        if (c === '"' && next === '"') { value += '"'; i++; }
+        else if (c === '"') inQuotes = false;
+        else value += c;
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { row.push(value); value = ''; }
+        else if (c === '\n') { row.push(value); rows.push(row); row = []; value = ''; }
+        else if (c === '\r') { }
+        else value += c;
+      }
+    }
+    if (value.length || row.length) { row.push(value); rows.push(row); }
+    if (!rows.length) return [];
+    const headers = rows[0].map(x => String(x || '').trim());
+    return rows.slice(1).filter(r => r.some(cell => String(cell || '').trim() !== '')).map(r => {
+      const obj = {};
+      headers.forEach((h, idx) => obj[h] = r[idx] ?? '');
+      return obj;
+    });
+  }
+
+  function normalizeBackupShape(raw) {
+    if (!raw) throw new Error('Backup kosong');
+    if (raw.data && typeof raw.data === 'object') return raw;
+    return {
+      version: raw.version || 'legacy-import',
+      exportedAt: raw.exportedAt || new Date().toISOString(),
+      data: {
+        users: Array.isArray(raw.users) ? raw.users : [],
+        attendance: Array.isArray(raw.attendance) ? raw.attendance : [],
+        transactions: Array.isArray(raw.transactions) ? raw.transactions : []
+      }
+    };
+  }
+
+  async function resetAllAppData() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const pin = prompt('⚠️ Reset semua data aplikasi?\nKetik PIN admin untuk lanjut:');
+    if (!pin) return;
+    if (pin !== String(currentUser?.pin || '')) return showToast('PIN admin salah!', true);
+    if (!confirm('Semua users, attendance, dan transactions akan dihapus dulu. Lanjut?')) return;
+    setLoading(true);
+    try {
+      const collections = ['transactions', 'attendance', 'users', 'audit_logs'];
+      for (const name of collections) {
+        const snap = await getDocs(collection(db, name));
+        for (const item of snap.docs) {
+          if (name === 'users' && item.id === sanitizeUsername(currentUser?.username)) continue;
+          await deleteDoc(doc(db, name, item.id));
+        }
+      }
+      selectedUserFilter = 'all';
+      clearAdminUserForm();
+      clearRestoreFile('json');
+      clearRestoreFile('excel');
+      await logAudit('reset_all_data', { keptAdmin: currentUser?.username || null });
+      showToast('✓ Semua data aplikasi direset');
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal reset semua data', true);
+    }
+    setLoading(false);
+  }
+
+
+  async function downloadBackup(format = 'json') {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    setLoading(true);
+    try {
+      const backup = getBackupPayload();
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+      if (format === 'json') {
+        downloadTextFile(JSON.stringify(backup, null, 2), `rocky-backup-${stamp}.json`, 'application/json');
+        showToast('✓ Backup JSON diunduh');
+      } else if (format === 'xlsx') {
+        if (!window.XLSX) throw new Error('Library Excel belum siap');
+        const wb = XLSX.utils.book_new();
+        const usersRows = backup.data.users.map(u => ({
+          username: u.username || '',
+          name: u.name || '',
+          pin: u.pin || '',
+          role: u.role || 'staff',
+          createdAt: u.createdAt || ''
+        }));
+        const attendanceRows = backup.data.attendance.map(a => ({
+          user: a.user || '',
+          name: a.name || '',
+          dateKey: a.dateKey || '',
+          lat: a.lat ?? '',
+          lng: a.lng ?? '',
+          createdAt: a.createdAt || '',
+          createdAtMs: a.createdAtMs || ''
+        }));
+        const transactionRows = backup.data.transactions.map(t => ({
+          user: t.user || '',
+          name: t.name || '',
+          note: t.note || '',
+          amount: Number(t.amount || 0),
+          dateKey: t.dateKey || '',
+          monthKey: t.monthKey || '',
+          createdAt: t.createdAt || '',
+          createdAtMs: t.createdAtMs || ''
+        }));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(usersRows), 'users');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(attendanceRows), 'attendance');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(transactionRows), 'transactions');
+        XLSX.writeFile(wb, `rocky-backup-${stamp}.xlsx`);
+        showToast('✓ Backup Excel diunduh');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal backup', true);
+    }
+    setLoading(false);
+  }
+
+  async function importBackupData(backup) {
+    const users = Array.isArray(backup.data.users) ? backup.data.users : [];
+    const attendance = Array.isArray(backup.data.attendance) ? backup.data.attendance : [];
+    const transactions = Array.isArray(backup.data.transactions) ? backup.data.transactions : [];
+    for (const u of users) {
+      const username = sanitizeUsername(u.username);
+      if (!username) continue;
+      await setDoc(doc(db, 'users', username), {
+        username,
+        name: String(u.name || username),
+        pin: String(u.pin || ''),
+        role: String(u.role || 'staff'),
+        active: u.active !== false,
+        createdAt: u.createdAt ? Timestamp.fromMillis(new Date(u.createdAt).getTime()) : serverTimestamp()
+      }, { merge: true });
+    }
+    for (const a of attendance) {
+      const ms = Number(a.createdAtMs || (a.createdAt ? new Date(a.createdAt).getTime() : Date.now()));
+      await addDoc(collection(db, 'attendance'), {
+        user: sanitizeUsername(a.user),
+        name: String(a.name || a.user || ''),
+        dateKey: String(a.dateKey || ''),
+        lat: a.lat ?? null,
+        lng: a.lng ?? null,
+        createdAt: Timestamp.fromMillis(ms),
+        createdAtMs: ms,
+        deleted: false
+      });
+    }
+    for (const t of transactions) {
+      const ms = Number(t.createdAtMs || (t.createdAt ? new Date(t.createdAt).getTime() : Date.now()));
+      await addDoc(collection(db, 'transactions'), {
+        user: sanitizeUsername(t.user),
+        name: String(t.name || t.user || ''),
+        note: String(t.note || 'Transaksi'),
+        amount: Number(t.amount || 0),
+        dateKey: String(t.dateKey || ''),
+        monthKey: String(t.monthKey || ''),
+        createdAt: Timestamp.fromMillis(ms),
+        createdAtMs: ms,
+        deleted: false
+      });
+    }
+    return { users, attendance, transactions };
+  }
+
+  function handleRestoreFileSelect(type) {
+    const inputId = type === 'excel' ? 'restore-excel-file' : 'restore-file';
+    const labelId = type === 'excel' ? 'restore-excel-label' : 'restore-json-label';
+    const file = $(inputId)?.files?.[0] || null;
+    if (type === 'excel') selectedRestoreExcelFile = file;
+    else selectedRestoreJsonFile = file;
+    const label = $(labelId);
+    if (label) label.textContent = file ? `Dipilih: ${file.name}` : 'Belum ada file dipilih';
+    if (file) showToast(`✓ File dipilih: ${file.name}`);
+  }
+
+  function getRestoreFile(type) {
+    const inputId = type === 'excel' ? 'restore-excel-file' : 'restore-file';
+    const cached = type === 'excel' ? selectedRestoreExcelFile : selectedRestoreJsonFile;
+    return $(inputId)?.files?.[0] || cached || null;
+  }
+
+  function clearRestoreFile(type) {
+    const inputId = type === 'excel' ? 'restore-excel-file' : 'restore-file';
+    const labelId = type === 'excel' ? 'restore-excel-label' : 'restore-json-label';
+    if ($(inputId)) $(inputId).value = '';
+    if ($(labelId)) $(labelId).textContent = 'Belum ada file dipilih';
+    if (type === 'excel') selectedRestoreExcelFile = null;
+    else selectedRestoreJsonFile = null;
+  }
+
+  function pickLocalRestoreFile(type) {
+    const accept = type === 'excel'
+      ? '.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel'
+      : '.json,application/json';
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = accept;
+      input.style.position = 'fixed';
+      input.style.left = '-9999px';
+      input.style.opacity = '0';
+      document.body.appendChild(input);
+      input.addEventListener('change', () => {
+        const file = input.files && input.files[0] ? input.files[0] : null;
+        try { document.body.removeChild(input); } catch (e) {}
+        resolve(file);
+      }, { once: true });
+      input.click();
+    });
+  }
+
+  async function pickAndRestoreJsonFile() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    const file = await pickLocalRestoreFile('json');
+    if (!file) return showToast('Pilih file backup JSON dulu!', true);
+    selectedRestoreJsonFile = file;
+    const label = $('restore-json-label');
+    if (label) label.textContent = `Dipilih: ${file.name}`;
+    await restoreBackupFromFile(file);
+  }
+
+  async function pickAndRestoreExcelFile() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    const file = await pickLocalRestoreFile('excel');
+    if (!file) return showToast('Pilih file Excel dulu!', true);
+    selectedRestoreExcelFile = file;
+    const label = $('restore-excel-label');
+    if (label) label.textContent = `Dipilih: ${file.name}`;
+    await restoreExcelFromFile(file);
+  }
+
+  async function restoreBackupFromFile(fileOverride = null) {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const file = fileOverride || getRestoreFile('json');
+    if (!file) return showToast('Pilih file backup JSON dulu!', true);
+    setLoading(true);
+    try {
+      const raw = await file.text();
+      const backup = normalizeBackupShape(JSON.parse(raw));
+      const result = await importBackupData(backup);
+      clearRestoreFile('json');
+      await logAudit('restore_data', { format: 'json', users: result.users.length, attendance: result.attendance.length, transactions: result.transactions.length });
+      showToast(`✓ Restore selesai: ${result.users.length} user, ${result.attendance.length} absen, ${result.transactions.length} transaksi`);
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal restore backup', true);
+    }
+    setLoading(false);
+  }
+
+
+  async function restoreExcelFromFile(fileOverride = null) {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    const file = fileOverride || getRestoreFile('excel');
+    if (!file) return showToast('Pilih file Excel dulu!', true);
+    setLoading(true);
+    try {
+      if (!window.XLSX) throw new Error('Library Excel belum siap');
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+
+      const pickSheetRows = (name) => {
+        const sheet = workbook.Sheets[name];
+        if (!sheet) return [];
+        return XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      };
+
+      const backup = {
+        version: 'excel-import',
+        exportedAt: new Date().toISOString(),
+        data: {
+          users: pickSheetRows('users').map(u => ({
+            username: sanitizeUsername(u.username),
+            name: String(u.name || ''),
+            pin: String(u.pin || ''),
+            role: String(u.role || 'staff'),
+            active: String(u.active || 'true') !== 'false',
+            createdAt: u.createdAt || null
+          })).filter(u => u.username),
+          attendance: pickSheetRows('attendance').map(a => ({
+            user: sanitizeUsername(a.user),
+            name: String(a.name || a.user || ''),
+            dateKey: String(a.dateKey || ''),
+            lat: a.lat === '' ? null : Number(a.lat),
+            lng: a.lng === '' ? null : Number(a.lng),
+            createdAt: a.createdAt || null,
+            createdAtMs: Number(a.createdAtMs || 0)
+          })).filter(a => a.user),
+          transactions: pickSheetRows('transactions').map(t => ({
+            user: sanitizeUsername(t.user),
+            name: String(t.name || t.user || ''),
+            note: String(t.note || 'Transaksi'),
+            amount: Number(t.amount || 0),
+            dateKey: String(t.dateKey || ''),
+            monthKey: String(t.monthKey || ''),
+            createdAt: t.createdAt || null,
+            createdAtMs: Number(t.createdAtMs || 0)
+          })).filter(t => t.user)
+        }
+      };
+
+      const result = await importBackupData(backup);
+      clearRestoreFile('excel');
+      await logAudit('restore_data', { format: 'excel', users: result.users.length, attendance: result.attendance.length, transactions: result.transactions.length });
+      showToast(`✓ Restore Excel selesai: ${result.users.length} user, ${result.attendance.length} absen, ${result.transactions.length} transaksi`);
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal restore Excel', true);
+    }
+    setLoading(false);
+  }
+
+  async function normalizeLegacyData() {
+    if (!isAdmin()) return showToast('Hanya admin!', true);
+    if (isBusy) return showToast('Tunggu proses selesai', true);
+    if (!confirm('Normalisasi data lama? Ini akan menambah field dateKey/monthKey/createdAtMs yang belum ada.')) return;
+    setLoading(true);
+    try {
+      let updated = 0;
+      const userSnap = await getDocs(collection(db, 'users'));
+      for (const item of userSnap.docs) {
+        const data = item.data() || {};
+        const patch = {};
+        if (data.active === undefined) patch.active = true;
+        if (data.username && data.username !== sanitizeUsername(data.username)) patch.username = sanitizeUsername(data.username);
+        if (Object.keys(patch).length) {
+          await setDoc(doc(db, 'users', item.id), patch, { merge: true });
+          updated++;
+        }
+      }
+
+      const attSnap = await getDocs(collection(db, 'attendance'));
+      for (const item of attSnap.docs) {
+        const data = item.data() || {};
+        const patch = {};
+        const ms = getRecordTimeMs(data);
+        const dk = extractDateKey(data);
+        if (!data.user && data.username) patch.user = sanitizeUsername(data.username);
+        if (!data.dateKey && dk) patch.dateKey = dk;
+        if (!data.createdAtMs && ms) patch.createdAtMs = ms;
+        if (Object.keys(patch).length) {
+          await setDoc(doc(db, 'attendance', item.id), patch, { merge: true });
+          updated++;
+        }
+      }
+
+      const trxSnap = await getDocs(collection(db, 'transactions'));
+      for (const item of trxSnap.docs) {
+        const data = item.data() || {};
+        const patch = {};
+        const ms = getRecordTimeMs(data);
+        const dk = extractDateKey(data);
+        if (!data.dateKey && dk) patch.dateKey = dk;
+        if (!data.monthKey && dk) patch.monthKey = dk.slice(0, 7);
+        if (!data.createdAtMs && ms) patch.createdAtMs = ms;
+        if (data.deleted === undefined) patch.deleted = false;
+        if (Object.keys(patch).length) {
+          await setDoc(doc(db, 'transactions', item.id), patch, { merge: true });
+          updated++;
+        }
+      }
+
+      await logAudit('normalize_legacy_data', { updated });
+      showToast(`✓ Normalisasi selesai (${updated} update)`);
+      await renderSettingsSummary();
+      await refreshCurrentPage();
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal normalisasi data', true);
+    }
+    setLoading(false);
+  }
+
+
+
+  async function renderSettingsSummary() {
+    const info = $('settings-summary');
+    if (!info || !currentUser) return;
+    const userCount = activeUsers().length;
+    const inactiveUsers = sortUsers((cachedUsers || []).filter(u => !isUserActive(u)));
+    const visibleInactiveUsers = inactiveUsers.slice(0, inactiveUserLimit);
+    const hasMoreInactiveUsers = inactiveUsers.length > visibleInactiveUsers.length;
+    const deletedTransactions = getDeletedTransactions();
+    const filteredDeletedTransactions = getFilteredDeletedTransactions();
+    const filteredLogs = getFilteredAuditLogs();
+    const hasMoreLogs = cachedAuditLogs.length > filteredLogs.length;
+    const visibleDeletedTransactions = filteredDeletedTransactions.slice(0, recycleBinLimit);
+    const hasMoreDeleted = filteredDeletedTransactions.length > visibleDeletedTransactions.length;
+
+    const adminBlocks = isAdmin() ? `
+      <div class="card" style="padding:14px 16px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+          <p class="label-xs" style="margin:0">Manajemen User</p>
+          <span class="status-pill status-ok">${userCount} user aktif</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:9px">
+          <select id="admin-user-select" class="g-input" onchange="fillAdminUserForm(this.value)">
+            <option value="">Pilih user untuk edit / nonaktifkan</option>
+            ${sortUsers(cachedUsers).map(u => `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)} (@${escapeHtml(u.username)}) · ${escapeHtml(String(u.role || 'staff').toUpperCase())} ${isUserActive(u) ? '' : '· NONAKTIF'}</option>`).join('')}
+          </select>
+          <input id="admin-user-username" class="g-input" placeholder="username baru / username user" />
+          <input id="admin-user-name" class="g-input" placeholder="nama user" />
+          <input id="admin-user-pin" class="g-input" inputmode="numeric" placeholder="PIN user (min 3)" />
+          <select id="admin-user-role" class="g-input">
+            <option value="staff">staff</option>
+            <option value="admin">admin</option>
+          </select>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <button onclick="saveAdminUser()" class="btn btn-primary" style="padding:12px;font-size:12px">Simpan User</button>
+            <button onclick="clearAdminUserForm()" class="btn btn-glass" style="padding:12px;font-size:12px">Kosongkan</button>
+            <button onclick="deleteAdminUser()" class="btn btn-danger" style="padding:12px;font-size:12px">Nonaktifkan</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button onclick="hardDeleteAdminUser()" class="btn btn-danger" style="padding:12px;font-size:12px">Hapus Permanen User</button>
+            <button onclick="fillAdminUserForm('')" class="btn btn-glass" style="padding:12px;font-size:12px">Pilih dari daftar</button>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--text-soft);margin-top:10px">Default aman: user dinonaktifkan dulu. Hapus permanen hanya untuk akun yang memang sudah nonaktif.</p>
+      </div>
+
+      <div class="card" style="padding:14px 16px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+          <p class="label-xs" style="margin:0">Backup, Reset & Restore</p>
+          <span class="status-pill status-warn">JSON + Excel</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <button onclick="downloadBackup('json')" class="btn btn-primary" style="padding:12px;font-size:12px"><i class="fas fa-download"></i> Backup JSON</button>
+            <button onclick="downloadBackup('xlsx')" class="btn btn-glass" style="padding:12px;font-size:12px"><i class="fas fa-file-excel"></i> Backup Excel</button>
+            <button onclick="resetAllAppData()" class="btn btn-danger" style="padding:12px;font-size:12px"><i class="fas fa-trash"></i> Reset Data</button>
+          </div>
+          <input id="restore-file" type="file" class="g-input" accept=".json,application/json" onchange="handleRestoreFileSelect('json')" />
+          <div id="restore-json-label" style="font-size:11px;color:var(--text-soft);margin-top:-5px">Belum ada file dipilih</div>
+          <button onclick="pickAndRestoreJsonFile()" class="btn btn-glass" style="padding:12px;font-size:12px"><i class="fas fa-upload"></i> Pilih & Restore JSON</button>
+          <input id="restore-excel-file" type="file" class="g-input" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onchange="handleRestoreFileSelect('excel')" />
+          <div id="restore-excel-label" style="font-size:11px;color:var(--text-soft);margin-top:-5px">Belum ada file dipilih</div>
+          <button onclick="pickAndRestoreExcelFile()" class="btn btn-glass" style="padding:12px;font-size:12px"><i class="fas fa-file-import"></i> Pilih & Restore Excel</button>
+          <button onclick="normalizeLegacyData()" class="btn btn-glass" style="padding:12px;font-size:12px"><i class="fas fa-wand-magic-sparkles"></i> Normalisasi Data Lama</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-soft);margin-top:10px">Alur aman: backup dulu → klik Pilih & Restore → pilih file → proses restore langsung jalan. Cara ini anti-reset input file.</p>
+      </div>
+
+      <div class="card" style="padding:14px 16px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <p class="label-xs" style="margin:0">Data Terhapus</p>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span class="status-pill status-warn">${filteredDeletedTransactions.length} hasil filter</span>
+            <span class="user-chip">${deletedTransactions.length} total</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <input value="${escapeHtml(recycleSearch)}" oninput="setRecycleSearch(this.value)" class="g-input" placeholder="Cari note / user / id..." />
+          <select id="recycle-user-filter" class="g-input" onchange="setRecycleUserFilter(this.value)">${getUserOptionsHtml(true)}</select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <button onclick="bulkRestoreDeletedTransactions()" class="btn btn-glass" style="padding:11px;font-size:11px">Pulihkan Semua</button>
+          <button onclick="bulkHardDeleteDeletedTransactions()" class="btn btn-danger" style="padding:11px;font-size:11px">Hapus Permanen Semua</button>
+          <button onclick="resetRecycleFilters()" class="btn btn-glass" style="padding:11px;font-size:11px">Reset Filter</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto">
+          ${visibleDeletedTransactions.length ? visibleDeletedTransactions.map(t => `
+            <div style="padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+                <div style="min-width:0">
+                  <div style="font-size:12px;font-weight:700">Rp ${formatRupiah(t.amount || 0)} · ${escapeHtml(t.name || t.user || '-')}</div>
+                  <div style="font-size:10px;color:var(--text-soft);margin-top:3px">${escapeHtml(t.note || 'Transaksi')} · ${escapeHtml(t.user || '-')}</div>
+                  <div style="font-size:10px;color:var(--text-ghost);margin-top:3px">ID: ${escapeHtml(t.id || '-')} · Hapus: ${escapeHtml(t.deletedByName || t.deletedBy || '-')}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+                  <button onclick="restoreDeletedTransaction('${escapeHtml(t.id || '')}')" class="btn btn-glass" style="padding:8px 10px;font-size:11px">Pulihkan</button>
+                  <button onclick="hardDeleteTransaction('${escapeHtml(t.id || '')}')" class="btn btn-danger" style="padding:8px 10px;font-size:11px">Permanen</button>
+                </div>
+              </div>
+            </div>
+          `).join('') : `<div style="font-size:12px;color:var(--text-soft)">Belum ada transaksi terhapus sesuai filter.</div>`}
+        </div>
+        ${hasMoreDeleted ? `<button onclick="increaseRecycleBinLimit()" class="btn btn-glass" style="width:100%;margin-top:10px;padding:11px;font-size:12px">Muat 20 data terhapus lagi</button>` : ''}
+        <p style="font-size:11px;color:var(--text-soft);margin-top:10px">Hapus biasa hanya memindahkan data ke recycle bin. Gunakan filter untuk cari data tertentu, atau hapus/pulihkan semua hasil filter sekaligus.</p>
+      </div>
+
+      <div class="card" style="padding:14px 16px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+          <p class="label-xs" style="margin:0">Audit Log</p>
+          <span class="status-pill status-ok">${cachedAuditLogs.length} log</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto">
+          ${filteredLogs.length ? filteredLogs.map(log => `
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+              <div style="width:30px;height:30px;border-radius:9px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent)"><i class="fas fa-clock-rotate-left" style="font-size:11px"></i></div>
+              <div style="min-width:0;flex:1">
+                <div style="font-size:12px;font-weight:700;line-height:1.35">${escapeHtml(summarizeAuditLog(log))}</div>
+                <div style="font-size:10px;color:var(--text-soft);margin-top:3px">${escapeHtml(log.actorName || log.actor || '-')} · ${escapeHtml(formatAuditTime(log))}</div>
+              </div>
+            </div>`).join('') : `<div style="font-size:12px;color:var(--text-soft)">Belum ada audit log.</div>`}
+        </div>
+        ${hasMoreLogs ? `<button onclick="increaseAuditLogLimit()" class="btn btn-glass" style="width:100%;margin-top:10px;padding:11px;font-size:12px">Muat 10 log lagi</button>` : ''}
+        <p style="font-size:11px;color:var(--text-soft);margin-top:10px">Log dibuat ringkas dan dibatasi tampilannya supaya tidak membebani UI. Event yang dicatat hanya aksi penting admin/sistem.</p>
+      </div>
+
+      <div class="card" style="padding:14px 16px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+          <p class="label-xs" style="margin:0">User Nonaktif</p>
+          <span class="status-pill status-warn">${inactiveUsers.length} user</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto">
+          ${visibleInactiveUsers.length ? visibleInactiveUsers.map(u => `<div style="padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)"><div style="font-size:12px;font-weight:700">${escapeHtml(u.name || u.username)} (@${escapeHtml(u.username || '-')})</div><div style="font-size:10px;color:var(--text-soft)">${escapeHtml(String(u.role || 'staff').toUpperCase())} · nonaktif</div></div>`).join('') : `<div style="font-size:12px;color:var(--text-soft)">Belum ada user nonaktif.</div>`}
+        </div>
+        ${hasMoreInactiveUsers ? `<button onclick="increaseInactiveUserLimit()" class="btn btn-glass" style="width:100%;margin-top:10px;padding:11px;font-size:12px">Muat ${Math.min(INACTIVE_USER_STEP, inactiveUsers.length - visibleInactiveUsers.length)} user nonaktif lagi</button>` : ''}
+      </div>` : '';
+
+    info.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span>Project</span><strong>${escapeHtml(supabaseConfig.projectId)}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span>Status Koneksi</span><strong>${navigator.onLine ? 'Online' : 'Offline'}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span>Role Aktif</span><strong>${getRoleLabel()}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span>Scope Data</span><strong>${escapeHtml(getUserDataScopeLabel())}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span>Transaksi Aktif</span><strong>${getVisibleTransactions().length}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span>Recycle Bin</span><strong>${deletedTransactions.length}</strong></div>
+      </div>
+      ${adminBlocks}
+    `;
+    if (isAdmin() && $('recycle-user-filter')) $('recycle-user-filter').value = recycleUserFilter;
+  }
+  function escapeHtml(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+
+  function applyNavRoleLabels() {
+    const labels = isAdmin()
+      ? { home:'Admin', history:'Semua', report:'Global', settings:'User' }
+      : { home:'Beranda', history:'Riwayat', report:'Laporan', settings:'Setelan' };
+    if ($('nav-home-label')) $('nav-home-label').textContent = labels.home;
+    if ($('nav-history-label')) $('nav-history-label').textContent = labels.history;
+    if ($('nav-report-label')) $('nav-report-label').textContent = labels.report;
+    if ($('nav-settings-label')) $('nav-settings-label').textContent = labels.settings;
+  }
+
+  function setActiveNav(page) {
+    ['home','history','report','settings'].forEach(p => {
+      const btn = $('nav-' + p); if (btn) btn.classList.toggle('active', p === page);
+    });
+    const fab = $('fab-pos');
+    if (fab) fab.style.display = currentUser && ['home','history','report','settings'].includes(page) ? 'flex' : 'none';
+  }
+
+  const router = {
+    navigate: async (page) => {
+      currentPage = page;
+      const content = $('page-content');
+      const nav = $('bottom-nav');
+      const themeIcon = getTheme() === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+
+      if (page === 'login') {
+        nav.style.display = 'none';
+        $('fab-pos').style.display = 'none';
+        content.innerHTML = `
+          <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 22px;position:relative">
+            <div style="position:absolute;top:22px;right:22px"><button class="theme-toggle" onclick="toggleTheme()">${themeIcon}</button></div>
+            <div class="login-brand page-in" style="margin-bottom:18px"><div style="font-size:34px">🧕</div></div>
+            <h1 style="font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px;text-align:center" class="page-in s1">Rocky Hijab</h1>
+            <p style="font-size:13px;color:var(--text-soft);margin-bottom:10px;text-align:center" class="page-in s1">Koleksi Terbaik Untuk Muslimah Hebat</p>
+            <div style="width:100%;display:flex;flex-direction:column;gap:10px;max-width:360px" class="page-in s2">
+              <input id="login-user" type="text" placeholder="Username" class="g-input" style="font-size:15px;padding:14px 15px">
+              <input id="login-pin" type="password" inputmode="numeric" placeholder="PIN" class="g-input" style="font-size:15px;padding:14px 15px;letter-spacing:.08em">
+              <button onclick="login()" class="btn btn-primary" style="width:100%;padding:14px;font-size:14.5px;margin-top:4px;border-radius:13px">Masuk</button>
+            <p style="font-size:11px;color:var(--text-ghost);margin-top:14px;text-align:center" class="page-in s3">Refresh Setiap Kali Melakukan Transaksi</p>
+          </div>`;
+      } else if (!currentUser) {
+        return router.navigate('login');
+      } else if (page === 'home') {
+        nav.style.display = 'flex'; setActiveNav(page);
+        content.innerHTML = `
+          <div class="page-pad">
+            <div style="padding:34px 0 18px;display:flex;justify-content:space-between;align-items:center" class="page-in">
+              <div>
+                <p style="font-size:11px;color:var(--text-ghost);font-weight:600;margin-bottom:4px">${isAdmin() ? 'Panel Admin' : 'Halo, ' + escapeHtml(currentUser.name)}</p>
+                <h2 style="font-size:22px;font-weight:800;letter-spacing:-.02em">${isAdmin() ? 'Kontrol Semua Data' : 'Bismillah Dulu'}</h2>
+              </div>
+              <div class="header-actions">
+                <button class="theme-toggle" onclick="toggleTheme()">${themeIcon}</button>
+                <button class="theme-toggle" onclick="logout()" title="Keluar"><i class="fas fa-right-from-bracket"></i></button>
+              </div>
+            </div>
+            <div class="card page-in s1" style="padding:14px 16px;margin-bottom:12px">
+              <p class="label-xs" style="margin-bottom:8px">${isAdmin() ? 'Ringkasan Hari Ini' : 'Absensi Hari Ini'}</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                <div id="home-status"></div>
+                <div id="loc-info"><span class="loc-chip loc-loading"><i class="fas fa-circle-notch fa-spin" style="font-size:10px"></i> Mencari GPS...</span></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px" class="page-in s2">
+              <div class="card" style="padding:14px 15px">
+                <p class="label-xs" style="margin-bottom:8px">${isAdmin() ? 'Omzet Hari Ini' : 'Pendapatan Hari Ini'}</p>
+                <p id="today-income" style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--text)">Rp 0</p>
+              </div>
+              <div id="today-attendance-card" class="card" style="padding:14px 15px;background:var(--red-dim);border-color:rgba(255,107,107,0.2)">
+                <p class="label-xs" id="today-attendance-label" style="margin-bottom:8px;color:var(--red)">${isAdmin() ? 'Aktivitas Hari Ini' : 'Absen Hari Ini'}</p>
+                <p id="today-attendance-info" style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:var(--red);line-height:1">--:--</p>
+              </div>
+            </div>
+            <div class="card page-in s3" style="padding:16px 16px;margin-bottom:10px"><div style="display:flex;justify-content:flex-end;margin-bottom:10px">${isAdmin() ? `<span id="scope-chip" class="user-chip">${getSelectedUserLabel()}</span>` : `<span id="scope-chip" class="user-chip">Data Saya</span>`}</div>
+              <p class="label-xs" style="margin-bottom:8px">${isAdmin() ? 'Estimasi Bonus Global' : 'Bonus Bulan Ini'}</p>
+              <p id="total-bonus" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;color:var(--accent);margin-bottom:6px">Rp 0</p>
+              <p id="bonus-text" style="font-size:11px;color:var(--text-soft)"></p>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;color:var(--text-soft)">Omzet bulan ini</span>
+                <strong id="month-omzet" style="font-size:12px;color:var(--text)">Rp 0</strong>
+              </div>
+            </div>
+            ${isAdmin() ? `<div id="admin-dashboard-panels"></div>` : ''}
+          </div>`;
+        updateLocation(); updateHomeStatus(); updateHomeStats();
+      } else if (page === 'history') {
+        nav.style.display = 'flex'; setActiveNav(page);
+        content.innerHTML = `
+          <div class="page-pad">
+            <div style="padding:34px 0 18px;display:flex;justify-content:space-between;align-items:center" class="page-in">
+              <div><p class="page-title">${isAdmin() ? 'Semua Transaksi' : 'Riwayat'}</p><p class="page-subtitle">${isAdmin() ? 'Pantau transaksi seluruh user' : 'Daftar transaksi yang sudah tersimpan'}</p></div>
+              <div style="display:flex;gap:8px">
+                <button class="theme-toggle" onclick="toggleTheme()">${themeIcon}</button>
+                <button class="theme-toggle" onclick="logout()" title="Keluar"><i class="fas fa-right-from-bracket"></i></button>
+              </div>
+            </div>
+            <div id="history-list" style="display:flex;flex-direction:column;gap:9px;padding-bottom:22px"></div>
+          </div>`;
+        renderHistory();
+      } else if (page === 'report') {
+        nav.style.display = 'flex'; setActiveNav(page);
+        content.innerHTML = `
+          <div class="page-pad">
+            <div style="padding:34px 0 18px;display:flex;justify-content:space-between;align-items:center" class="page-in">
+              <div><p class="page-title">${isAdmin() ? 'Laporan Global' : 'Laporan'}</p><p class="page-subtitle">${isAdmin() ? 'Ringkasan semua user dalam satu panel' : 'Omzet, hadir, bonus, dan ringkasan kerja'}</p></div>
+              <div style="display:flex;gap:8px">
+                <button class="theme-toggle" onclick="toggleTheme()">${themeIcon}</button>
+                <button class="theme-toggle" onclick="logout()" title="Keluar"><i class="fas fa-right-from-bracket"></i></button>
+              </div>
+            </div>
+            <div class="tab-group page-in" style="margin-bottom:14px">
+              <button id="f-daily" onclick="setReportFilter('daily')" class="tab-btn ${reportFilter==='daily'?'active':''}">Harian</button>
+              <button id="f-monthly" onclick="setReportFilter('monthly')" class="tab-btn ${reportFilter==='monthly'?'active':''}">Bulanan</button>
+              <button id="f-yearly" onclick="setReportFilter('yearly')" class="tab-btn ${reportFilter==='yearly'?'active':''}">Tahunan</button>
+            </div>
+            <div id="report-view" style="display:flex;flex-direction:column;gap:10px;padding-bottom:18px"></div>
+          </div>`;
+        renderReport();
+      } else if (page === 'settings') {
+        nav.style.display = 'flex'; setActiveNav(page);
+        content.innerHTML = `
+          <div class="page-pad">
+            <div style="padding:50px 0 18px;display:flex;justify-content:space-between;align-items:center" class="page-in">
+              <p class="page-title">${isAdmin() ? 'User & Sistem' : 'Sistem'}</p>
+              <div class="header-actions"><button class="theme-toggle" onclick="toggleTheme()">${themeIcon}</button></div>
+            </div>
+            <div style="text-align:center;margin-bottom:24px" class="page-in">
+              <div style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg, var(--accent), #818cf8);display:flex;align-items:center;justify-content:center;font-size:28px;color:white;margin:0 auto">${escapeHtml((currentUser.name||'?').charAt(0).toUpperCase())}</div>
+              <p style="font-size:17px;font-weight:700;margin-top:12px;letter-spacing:-0.01em">${escapeHtml(currentUser.name)}</p>
+              <p style="font-size:12.5px;color:var(--text-soft);margin-top:2px">@${escapeHtml(currentUser.username)} · ${getRoleLabel()}</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;padding-bottom:18px" class="page-in s1">
+              <button onclick="toggleTheme()" class="setting-row">
+                <div class="setting-ico" style="background:var(--amber-dim)"><i class="fas fa-circle-half-stroke" style="color:var(--amber)"></i></div>
+                <span class="setting-label">Mode Tampilan</span>
+                <span style="font-size:11px;font-weight:600;color:var(--text-soft);margin-right:8px;text-transform:capitalize">${getTheme() === 'dark' ? '🌙 Gelap' : '☀️ Terang'}</span>
+                <i class="fas fa-chevron-right setting-arrow"></i>
+              </button>
+              <button onclick="updateLocation();showToast('Refresh lokasi')" class="setting-row">
+                <div class="setting-ico" style="background:var(--green-dim)"><i class="fas fa-location-dot" style="color:var(--green)"></i></div>
+                <span class="setting-label">Refresh Lokasi</span>
+                <i class="fas fa-chevron-right setting-arrow"></i>
+              </button>
+              <button onclick="seedDemoUser()" class="setting-row">
+                <div class="setting-ico" style="background:var(--accent-dim)"><i class="fas fa-user-plus" style="color:var(--accent)"></i></div>
+                <span class="setting-label">Pastikan User Demo Aji</span>
+                <i class="fas fa-chevron-right setting-arrow"></i>
+              </button>
+              ${isAdmin() ? `<button onclick="setSelectedUserFilter('all')" class="setting-row">
+                <div class="setting-ico" style="background:var(--accent-dim)"><i class="fas fa-users" style="color:var(--accent)"></i></div>
+                <span class="setting-label">Reset Filter ke Semua User</span>
+                <i class="fas fa-chevron-right setting-arrow"></i>
+              </button>` : ''}
+              <button onclick="logout()" class="setting-row">
+                <div class="setting-ico" style="background:var(--red-dim)"><i class="fas fa-right-from-bracket" style="color:var(--red)"></i></div>
+                <span class="setting-label">Keluar Aplikasi</span>
+                <i class="fas fa-chevron-right setting-arrow"></i>
+              </button>
+              <div class="card" style="padding:14px 16px;margin-top:8px">
+                <p class="label-xs">Info Supabase</p>
+                <div id="settings-summary"></div>
+              </div>
+            </div>
+          </div>`;
+        renderSettingsSummary();
+      }
+    }
+  };
+
+  function setHistoryFilter(f) { historyFilter = f; resetHistoryDisplayLimit(); renderHistory(); }
+  function filterHistoryByDateRange() {
+    const s = $('history-range-start')?.value, e = $('history-range-end')?.value;
+    if (s && e) { rangeStartDate = s; rangeEndDate = e; historyFilter = 'range'; resetHistoryDisplayLimit(); renderHistory(); }
+    else showToast('Pilih tanggal!', true);
+  }
+  function resetHistoryFilter() { rangeStartDate = null; rangeEndDate = null; historyFilter = 'daily'; resetHistoryDisplayLimit(); renderHistory(); }
+  function setReportFilter(f) {
+    reportFilter = f;
+    ['daily','monthly','yearly'].forEach(tab => {
+      const b = $('f-' + tab); if (b) b.classList.toggle('active', tab === f);
+    });
+    renderReport();
+  }
+
+
+  function setSelectedUserFilter(value) {
+    selectedUserFilter = value || 'all';
+    updateHomeStats();
+    resetHistoryDisplayLimit();
+    resetInactiveUserLimit();
+    if (currentPage === 'history') renderHistory();
+    if (currentPage === 'report') renderReport();
+    if (currentPage === 'settings') renderSettingsSummary();
+  }
+
+  async function seedDemoUser() {
+    setLoading(true);
+    try { await seedDemoUserIfMissing(); showToast('✓ User demo siap: aji / 123456'); }
+    catch (e) { showToast('Gagal buat user demo', true); }
+    setLoading(false);
+  }
+
+  window.toggleTheme = toggleTheme;
+  window.login = login;
+  window.logout = logout;
+  window.handleClockIn = handleClockIn;
+  window.openTransactionModal = openTransactionModal;
+  window.closeTransactionModal = closeTransactionModal;
+  window.handleTransactionFromModal = handleTransactionFromModal;
+  window.deleteTransaction = deleteTransaction;
+  window.restoreDeletedTransaction = restoreDeletedTransaction;
+  window.hardDeleteTransaction = hardDeleteTransaction;
+  window.bulkRestoreDeletedTransactions = bulkRestoreDeletedTransactions;
+  window.bulkHardDeleteDeletedTransactions = bulkHardDeleteDeletedTransactions;
+  window.setRecycleSearch = setRecycleSearch;
+  window.setRecycleUserFilter = setRecycleUserFilter;
+  window.resetRecycleFilters = resetRecycleFilters;
+  window.increaseRecycleBinLimit = increaseRecycleBinLimit;
+  window.increaseHistoryDisplayLimit = increaseHistoryDisplayLimit;
+  window.increaseInactiveUserLimit = increaseInactiveUserLimit;
+  window.filterHistoryByDateRange = filterHistoryByDateRange;
+  window.resetHistoryFilter = resetHistoryFilter;
+  window.setHistoryFilter = setHistoryFilter;
+  window.setReportFilter = setReportFilter;
+  window.setSelectedUserFilter = setSelectedUserFilter;
+  window.seedDemoUser = seedDemoUser;
+  window.fillAdminUserForm = fillAdminUserForm;
+  window.clearAdminUserForm = clearAdminUserForm;
+  window.saveAdminUser = saveAdminUser;
+  window.deleteAdminUser = deleteAdminUser;
+  window.hardDeleteAdminUser = hardDeleteAdminUser;
+  window.downloadBackup = downloadBackup;
+  window.handleRestoreFileSelect = handleRestoreFileSelect;
+  window.restoreBackupFromFile = restoreBackupFromFile;
+  window.restoreExcelFromFile = restoreExcelFromFile;
+  window.pickAndRestoreJsonFile = pickAndRestoreJsonFile;
+  window.pickAndRestoreExcelFile = pickAndRestoreExcelFile;
+  window.resetAllAppData = resetAllAppData;
+  window.normalizeLegacyData = normalizeLegacyData;
+  window.router = router;
+  window.updateLocation = updateLocation;
+
+  async function refreshTransactionsNow() {
+    if (!currentUser) return;
+    try {
+      const qy = isAdmin()
+        ? query(collection(db, 'transactions'), limit(TX_SYNC_LIMIT_ADMIN))
+        : query(collection(db, 'transactions'), where('user', '==', sanitizeUsername(currentUser.username)), limit(TX_SYNC_LIMIT_STAFF));
+      const snap = await getDocs(qy);
+      cachedTransactions = sortByCreatedDesc(
+        snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      );
+      refreshCurrentPage();
+    } catch (e) {
+      console.error('refreshTransactionsNow gagal:', e);
+    }
+  }
+
+  window.addEventListener('online', () => { renderSettingsSummary(); if (currentUser) bindRealtimeData(); });
+  window.addEventListener('offline', () => renderSettingsSummary());
+  let lastForegroundRefreshAt = 0;
+  async function refreshForegroundData() {
+    if (!currentUser) return;
+    const now = Date.now();
+    if (now - lastForegroundRefreshAt < 1500) return;
+    lastForegroundRefreshAt = now;
+    preloadAttendanceCache();
+    refreshCurrentPage();
+    await refreshTransactionsNow();
+  }
+
+  document.addEventListener('visibilitychange', async () => {
+    if (!document.hidden && currentUser) await refreshForegroundData();
+  });
+  window.addEventListener('focus', async () => {
+    if (currentUser) await refreshForegroundData();
+  });
+
+  (async () => {
+    if (await restoreSession()) router.navigate('home');
+    else router.navigate('login');
+  })();
+</script>
+</body>
+</html>
