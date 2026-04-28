@@ -2711,54 +2711,108 @@ Masukkan PIN admin:`);
     setLoading(false);
   }
 
+  function makeRestoreDocId(prefix, source, idx) {
+    const rawId = String(source?.id || source?.docId || source?.uid || '').trim();
+    if (rawId && rawId !== 'undefined' && rawId !== 'null') return rawId;
+    const ms = Number(source?.createdAtMs || (source?.createdAt ? new Date(source.createdAt).getTime() : Date.now()));
+    const safeMs = Number.isFinite(ms) && ms > 0 ? ms : Date.now();
+    const user = sanitizeUsername(source?.user || source?.username || 'data') || 'data';
+    return prefix + '_' + user + '_' + safeMs + '_' + idx + '_' + Math.random().toString(36).slice(2,8);
+  }
+
+  function normalizeRestoreDateKey(item, ms) {
+    const direct = String(item?.dateKey || item?.date_key || item?.date || item?.tanggal || '').trim().slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(direct)) return direct;
+    if (Number.isFinite(ms) && ms > 0) return toDateKey(new Date(ms));
+    return toDateKey(nowDate());
+  }
+
+  function normalizeRestoreMonthKey(item, dateKey) {
+    const direct = String(item?.monthKey || item?.month_key || '').trim().slice(0, 7);
+    if (/^\d{4}-\d{2}$/.test(direct)) return direct;
+    return String(dateKey || '').slice(0, 7) || toMonthKey(nowDate());
+  }
+
+  async function safeRestoreInsert(table, fallbackId, payload) {
+    try {
+      return await addDoc(collection(db, table), payload);
+    } catch (insertErr) {
+      console.warn('Restore insert fallback:', table, insertErr?.message || insertErr);
+      return await setDoc(doc(db, table, fallbackId), { ...payload, id: fallbackId }, { merge: true });
+    }
+  }
+
   async function importBackupData(backup) {
-    const users = Array.isArray(backup.data.users) ? backup.data.users : [];
-    const attendance = Array.isArray(backup.data.attendance) ? backup.data.attendance : [];
-    const transactions = Array.isArray(backup.data.transactions) ? backup.data.transactions : [];
+    const users = Array.isArray(backup?.data?.users) ? backup.data.users : [];
+    const attendance = Array.isArray(backup?.data?.attendance) ? backup.data.attendance : [];
+    const transactions = Array.isArray(backup?.data?.transactions) ? backup.data.transactions : [];
+    let userCount = 0, attCount = 0, txCount = 0;
+
     for (const u of users) {
-      const username = sanitizeUsername(u.username);
+      const username = sanitizeUsername(u.username || u.user);
       if (!username) continue;
       await setDoc(doc(db, 'users', username), {
         username,
-        name: String(u.name || username),
-        pin: String(u.pin || ''),
-        role: String(u.role || 'staff'),
+        name: String(u.name || u.nama || username),
+        pin: String(u.pin || u.PIN || ''),
+        role: String(u.role || 'staff').toLowerCase(),
         dailyBonusRate: Number(u.dailyBonusRate || 0) || (Number(u.dailyBonusPercent || 0) / 100),
         dailyBonusPercent: Number(u.dailyBonusPercent || 0) || (Number(u.dailyBonusRate || 0) * 100),
-        active: u.active !== false,
-        createdAt: u.createdAt ? Timestamp.fromMillis(new Date(u.createdAt).getTime()) : serverTimestamp()
+        active: u.active !== false && String(u.active ?? 'true') !== 'false',
+        deleted: false,
+        updatedAt: serverTimestamp(),
+        updatedBy: currentUser?.username || 'restore',
+        createdAt: u.createdAt || u.created_at || serverTimestamp()
       }, { merge: true });
+      userCount++;
     }
-    for (const a of attendance) {
-      const ms = Number(a.createdAtMs || (a.createdAt ? new Date(a.createdAt).getTime() : Date.now()));
-      await addDoc(collection(db, 'attendance'), {
-        user: sanitizeUsername(a.user),
-        name: String(a.name || a.user || ''),
-        dateKey: String(a.dateKey || ''),
-        lat: a.lat ?? null,
-        lng: a.lng ?? null,
-        createdAt: Timestamp.fromMillis(ms),
-        createdAtMs: ms,
-        deleted: false
-      });
-    }
-    for (const t of transactions) {
-      const ms = Number(t.createdAtMs || (t.createdAt ? new Date(t.createdAt).getTime() : Date.now()));
-      await addDoc(collection(db, 'transactions'), {
-        user: sanitizeUsername(t.user),
-        name: String(t.name || t.user || ''),
-        note: String(t.note || 'Transaksi'),
-        amount: Number(t.amount || 0),
-        dateKey: String(t.dateKey || ''),
-        monthKey: String(t.monthKey || ''),
-        createdAt: Timestamp.fromMillis(ms),
-        createdAtMs: ms,
-        deleted: false
-      });
-    }
-    return { users, attendance, transactions };
-  }
 
+    for (let i = 0; i < attendance.length; i++) {
+      const a = attendance[i] || {};
+      const user = sanitizeUsername(a.user || a.username);
+      if (!user) continue;
+      const rawMs = Number(a.createdAtMs || a.created_at_ms || (a.createdAt || a.created_at || a.time || a.waktu ? new Date(a.createdAt || a.created_at || a.time || a.waktu).getTime() : Date.now()));
+      const ms = Number.isFinite(rawMs) && rawMs > 0 ? rawMs : Date.now();
+      const dateKey = normalizeRestoreDateKey(a, ms);
+      const id = makeRestoreDocId('att', { ...a, user, createdAtMs: ms }, i);
+      await safeRestoreInsert('attendance', id, {
+        user,
+        name: String(a.name || a.nama || a.user || user),
+        dateKey,
+        lat: (a.lat ?? a.latitude ?? '') === '' ? null : Number(a.lat ?? a.latitude),
+        lng: (a.lng ?? a.longitude ?? '') === '' ? null : Number(a.lng ?? a.longitude),
+        createdAt: a.createdAt || a.created_at || Timestamp.fromMillis(ms),
+        createdAtMs: ms,
+        deleted: false
+      });
+      attCount++;
+    }
+
+    for (let i = 0; i < transactions.length; i++) {
+      const t = transactions[i] || {};
+      const user = sanitizeUsername(t.user || t.username);
+      if (!user) continue;
+      const amount = Number(t.amount || t.nominal || t.harga || t.total || 0);
+      if (!Number.isFinite(amount) || amount <= 0) continue;
+      const rawMs = Number(t.createdAtMs || t.created_at_ms || (t.createdAt || t.created_at || t.time || t.waktu ? new Date(t.createdAt || t.created_at || t.time || t.waktu).getTime() : Date.now()));
+      const ms = Number.isFinite(rawMs) && rawMs > 0 ? rawMs : Date.now();
+      const dateKey = normalizeRestoreDateKey(t, ms);
+      const monthKey = normalizeRestoreMonthKey(t, dateKey);
+      const id = makeRestoreDocId('tx', { ...t, user, createdAtMs: ms }, i);
+      await safeRestoreInsert('transactions', id, {
+        user,
+        name: String(t.name || t.nama || t.user || user),
+        note: String(t.note || t.item || t.keterangan || t.barang || 'Transaksi'),
+        amount, dateKey, monthKey,
+        createdAt: t.createdAt || t.created_at || Timestamp.fromMillis(ms),
+        createdAtMs: ms,
+        deleted: false
+      });
+      txCount++;
+    }
+
+    return { users: Array(userCount), attendance: Array(attCount), transactions: Array(txCount) };
+  }
   async function restoreBackupFromFile() {
     if (!isAdmin()) return showToast('Hanya admin!', true);
     if (isBusy) return showToast('Tunggu proses selesai', true);
