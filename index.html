@@ -118,6 +118,11 @@
       .stat-mini{padding:11px 9px}
       .stat-mini-num{font-size:21px}
     }
+
+    /* === SUPABASE v30 COMPACT CLEAN OVERRIDE === */
+    :root{--transition-theme:background .12s ease,color .12s ease,border-color .12s ease}
+    body{font-size:12px}#page-content{padding-bottom:78px}.page-pad{padding:0 12px}.card{border-radius:12px}.page-title{font-size:19px;line-height:1.08}.page-subtitle{font-size:10.5px;margin-top:1px}.label-xs{font-size:8.5px;margin-bottom:5px;letter-spacing:.06em}.g-input{border-radius:10px;padding:9px 11px;min-height:36px;font-size:12px;line-height:1.25}.btn{font-size:12px;gap:5px}.theme-toggle{width:32px;height:32px;border-radius:9px;font-size:12px}.header-actions{gap:6px}.stat-hero{border-radius:13px;padding:13px 14px;margin-bottom:8px}.stat-label{font-size:8.5px;margin-bottom:3px}.stat-value{font-size:22px;line-height:1.06}.stat-sub{font-size:10px;margin-top:3px}.stat-mini{border-radius:11px;padding:10px 8px}.stat-mini-num{font-size:20px}.stat-mini-lbl{font-size:8px;margin-bottom:3px}.summary-grid{gap:7px;margin-bottom:7px}.modal-wrap{align-items:flex-end}.modal-sheet{border-radius:18px 18px 0 0;max-width:430px;padding:14px 14px 24px}.modal-ico{width:38px;height:38px;border-radius:11px;font-size:14px;margin-bottom:8px}.amount-display{font-size:27px}#bottom-nav{bottom:8px;width:calc(100% - 18px);max-width:412px;height:52px;border-radius:16px;padding:0 4px}.nav-item{gap:2px;padding:6px 9px;border-radius:11px;min-width:45px}.nav-item i{font-size:14px}.nav-item span{font-size:7.5px}.fab-add{right:15px;bottom:68px;width:50px;height:50px;border-radius:15px;font-size:19px}.trx-card{border-radius:11px;padding:9px 10px;gap:9px}.trx-icon{width:31px;height:31px;border-radius:9px;font-size:12px}.trx-amount{font-size:13px}.trx-note{font-size:10px;max-width:180px}.trx-time{font-size:8.5px}.setting-row{gap:10px;padding:10px 12px;border-radius:11px}.setting-ico{width:29px;height:29px;border-radius:8px;font-size:11px}.setting-label{font-size:12px}.setting-arrow{font-size:9px}.badge{font-size:8px;padding:2px 6px}.status-pill{font-size:9.5px;padding:4px 8px;gap:4px}.login-brand{width:60px;height:60px;border-radius:18px;margin-bottom:14px}.user-chip{gap:4px;padding:3px 7px;font-size:9.5px}.loc-chip{gap:4px;padding:4px 8px;font-size:9.5px}.tab-group{border-radius:10px;padding:2px}.tab-btn{padding:7px 3px;border-radius:8px;font-size:10px}.page-in{animation:none}
+    div[style*="padding:34px 0 18px"]{padding:18px 0 10px!important}div[style*="padding:50px 0 18px"]{padding:22px 0 10px!important}div[style*="padding:18px 0 14px"]{padding:14px 0 9px!important}div[style*="margin-bottom:24px"]{margin-bottom:12px!important}div[style*="margin-bottom:18px"],div[style*="margin-bottom:16px"],div[style*="margin-bottom:14px"],div[style*="margin-bottom:12px"],div[style*="margin-bottom:10px"]{margin-bottom:8px!important}div[style*="gap:10px"],div[style*="gap:9px"],div[style*="gap:8px"]{gap:7px!important}div[style*="padding:22px 20px"],div[style*="padding:20px"],div[style*="padding:18px 20px"],div[style*="padding:18px 18px"],div[style*="padding:16px 18px"],div[style*="padding:16px 16px"]{padding:11px 12px!important}div[style*="padding:14px 16px"],div[style*="padding:14px 15px"],div[style*="padding:13px 15px"],div[style*="padding:12px 14px"]{padding:10px 11px!important}button[style*="padding:13px"],button[style*="padding:12px"],button[style*="padding:11px"]{padding:9px 10px!important}button[style*="padding:9px"]{padding:7px 9px!important}p[style*="font-size:34px"]{font-size:27px!important}p[style*="font-size:28px"]{font-size:22px!important}p[style*="font-size:26px"]{font-size:21px!important}p[style*="font-size:24px"]{font-size:19px!important}p[style*="font-size:22px"]{font-size:18px!important}p[style*="font-size:20px"]{font-size:17px!important}p[style*="font-size:17px"]{font-size:14px!important}h1[style],h2[style],h3[style]{line-height:1.08!important}h1[style*="font-size:24px"]{font-size:21px!important}h2[style*="font-size:22px"]{font-size:19px!important}h3[style*="font-size:16px"]{font-size:14px!important}@media(max-width:380px){.page-pad{padding:0 10px}.stat-value{font-size:20px}.trx-note{max-width:140px}.nav-item{padding-left:7px;padding-right:7px}.nav-item span{font-size:7px}}
   </style>
 </head>
 <body>
@@ -1995,7 +2000,7 @@ Masukkan PIN admin:`);
         </div>
 
         <select id="closing-target-user" class="g-input" onchange="renderAdminClosingPanelMaybe(true)" style="margin-bottom:10px;position:relative;z-index:1">
-          <option value="global">Semua User / Closing Global</option>
+          <option value="global">Semua / Global</option>
           ${getStaffClosingUsers().map(u => `<option value="${escapeHtml(u.username)}" ${targetUsername === sanitizeUsername(u.username) ? 'selected' : ''}>${escapeHtml(u.name || u.username)} (@${escapeHtml(u.username)}) ${isUserClosedToday(u.username) ? '· SUDAH CLOSING' : ''}</option>`).join('')}
         </select>
 
@@ -3109,15 +3114,15 @@ Masukkan PIN admin:`);
       `<div class="card" style="padding:12px 14px;margin-top:12px;background:linear-gradient(145deg,var(--bg3),var(--bg2));border-color:rgba(91,143,255,.18)">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <div style="min-width:0">
-            <div style="font-size:13px;font-weight:900;letter-spacing:-.01em">Menu Admin Pro</div>
-            <div style="font-size:10.5px;color:var(--text-soft);margin-top:3px">Mode accordion aktif · satu panel berat dibuka bergantian.</div>
+            <div style="font-size:13px;font-weight:900;letter-spacing:-.01em">Admin Pro</div>
+            <div style="font-size:10.5px;color:var(--text-soft);margin-top:3px">Panel berat dibuka satu-satu agar ringan.</div>
           </div>
           <button onclick="closeAdminSettingPanels()" class="btn btn-glass" ${openPanelCount ? '' : 'disabled'} style="padding:9px 11px;font-size:11px;white-space:nowrap"><i class="fas fa-compress"></i> Tutup Semua</button>
         </div>
       </div>`,
       renderAdminToggleSection('attendance', 'Performa Absen Staff', `<span class="status-pill status-ok">${activeUsers().length}</span>`, renderAdminAttendancePerformanceBody, 'fa-user-clock', 'Rata-rata jam absen bulanan staff'),
       renderAdminToggleSection('closing_history', 'Riwayat Closing', `<span class="status-pill status-ok">${getClosingHistoryRows(99).length}</span>`, () => renderClosingHistoryCard(), 'fa-lock', 'Riwayat closing aktif/batal'),
-      renderAdminToggleSection('bonus_control', 'Control Bonus', `<span class="status-pill status-ok">${getTransactionBonusPercent()}%</span>`, () => renderBonusControlCard(), 'fa-coins', 'Atur bonus transaksi dan bonus closing'),
+      renderAdminToggleSection('bonus_control', 'Kontrol Bonus', `<span class="status-pill status-ok">${getTransactionBonusPercent()}%</span>`, () => renderBonusControlCard(), 'fa-coins', 'Atur bonus transaksi dan bonus closing'),
       renderAdminToggleSection('daily_employee', 'Kontrol Karyawan Harian', `<span class="status-pill status-ok">${activeUsers().filter(u => isDailyEmployee(u)).length}</span>`, renderDailyEmployeeControlBody, 'fa-user-tag', 'Pantau gaji harian berbasis persentase'),
       renderAdminToggleSection('user_management', 'Manajemen User', `<span class="status-pill status-ok">${userCount}</span>`, () => renderUserManagementBody(userCount), 'fa-users-gear', 'Tambah, edit, nonaktifkan user'),
       renderAdminToggleSection('backup_restore', 'Backup, Reset & Restore', '<span class="status-pill status-warn">Backup</span>', renderBackupRestoreBody, 'fa-database', 'Backup, restore otomatis, normalisasi'),
@@ -3462,12 +3467,12 @@ Masukkan PIN admin:`);
               </button>` : ''}
               ${isAdmin() ? `<button onclick="toggleAdminMoreMenu()" class="setting-row">
                 <div class="setting-ico" style="background:var(--accent-dim)"><i class="fas fa-layer-group" style="color:var(--accent)"></i></div>
-                <span class="setting-label">Menu Lainnya</span>
+                <span class="setting-label">Admin Pro</span>
                 <span style="font-size:11px;font-weight:700;color:var(--text-soft);margin-right:8px">${adminMoreOpen ? 'Tutup' : 'Buka'}</span>
                 <i class="fas ${adminMoreOpen ? 'fa-chevron-up' : 'fa-chevron-down'} setting-arrow"></i>
               </button>` : ''}
               <div class="card" style="padding:14px 16px;margin-top:8px">
-                <p class="label-xs">Info Firebase</p>
+                <p class="label-xs">Info Supabase</p>
                 <div id="settings-summary"></div>
               </div>
             </div>
